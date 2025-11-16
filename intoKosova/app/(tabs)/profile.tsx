@@ -8,6 +8,7 @@ import {
   TextInput,
   Alert,
 } from "react-native";
+import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Animated, { FadeInUp } from "react-native-reanimated";
 import { colors } from "@/styles/commonStyles";
@@ -26,6 +27,7 @@ import { AntDesign } from "@expo/vector-icons";
 export default function ProfileScreen() {
   const { colorScheme } = useThemeManager();
   const theme = colors[colorScheme];
+  const router = useRouter();
 
   /* ---------------- AUTH STATES ---------------- */
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -81,6 +83,9 @@ export default function ProfileScreen() {
       setCurrentUser({ fullName, emailOrPhone: user.email });
       setIsAuthenticated(true);
       Alert.alert("🎉 Account created!", `Welcome, ${fullName}!`);
+
+      router.replace("/(tabs)/homepage");
+      
     } catch (error: any) {
       setErrorMessage(error.message);
     }
@@ -105,6 +110,9 @@ export default function ProfileScreen() {
       });
 
       setIsAuthenticated(true);
+
+      router.replace("/(tabs)/homepage");
+
     } catch (error) {
       setErrorMessage("Incorrect email or password");
     }
@@ -126,6 +134,9 @@ export default function ProfileScreen() {
 
       setCurrentUser(newUser);
       setIsAuthenticated(true);
+
+      router.replace("/(tabs)/homepage");
+
     } catch (error) {
       setErrorMessage("Failed to sign in with Google.");
     }
@@ -150,6 +161,7 @@ export default function ProfileScreen() {
           </Text>
 
           {isSignUp && (
+            <>
             <TextInput
               placeholder="Full name"
               placeholderTextColor={theme.textSecondary}
@@ -164,6 +176,22 @@ export default function ProfileScreen() {
               value={fullName}
               onChangeText={setFullName}
             />
+
+          <TextInput
+            placeholder="Birth Date (DD/MM/YYYY)"
+            placeholderTextColor={theme.textSecondary}
+            style={[
+              styles.input, 
+              {
+                backgroundColor: colorScheme === "dark" ? "#1A1A1A" : "#fff",
+                borderColor: colorScheme === "dark" ? "#333" : "#ddd",
+                color: theme.text,
+             },
+            ]}
+             value={birthDate}
+             onChangeText={setBirthDate}
+            />
+             </>
           )}
 
           <TextInput
@@ -180,6 +208,8 @@ export default function ProfileScreen() {
             value={emailOrPhone}
             onChangeText={setEmailOrPhone}
           />
+
+
 
           <TextInput
             placeholder="Password"
