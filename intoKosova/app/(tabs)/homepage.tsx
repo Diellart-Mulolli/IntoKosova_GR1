@@ -18,6 +18,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
 import * as Location from "expo-location";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { LinearGradient } from "expo-linear-gradient"; 
 
 // ------------------------------------
 // FEATURE LIST
@@ -66,6 +67,17 @@ const weatherIcons: any = {
   "50n": require("@/assets/weather/fog.png"),
 };
 
+const weatherGradients: any = {
+  Clear: ["#f6d365", "#fda085"], // Sunny orange/yellow
+  Clouds: ["#bdc3c7", "#2c3e50"], // Grey/blue
+  Rain: ["#4b79a1", "#283e51"], // Dark blue
+  Drizzle: ["#4b79a1", "#283e51"], // Same as rain
+  Thunderstorm: ["#232526", "#414345"], // Stormy
+  Snow: ["#83a4d4", "#b6fbff"], // Ice blue
+  Mist: ["#606c88", "#3f4c6b"],
+  Fog: ["#606c88", "#3f4c6b"],
+};
+
 const errorMessages = {
   location: {
     icon: "📍",
@@ -87,6 +99,10 @@ const errorMessages = {
     title: "Unexpected Error",
     desc: "Something went wrong.",
   },
+};
+
+const getWeatherGradient = (condition: string) => {
+  return weatherGradients[condition] || ["#4e54c8", "#8f94fb"]; // default purple gradient
 };
 
 
@@ -322,6 +338,7 @@ const fetchWeather = async (forceRefresh = false) => {
       city: data.name,
       desc: data.weather[0].description,
       icon: data.weather[0].icon,
+      condition: data.weather[0].main,
     };
 
     await AsyncStorage.setItem(
@@ -483,10 +500,12 @@ const WeatherErrorCard = () => {
         {/* WEATHER */}
         {/* WEATHER SUCCESS */}
 {weather && !weatherError && (
-  <Animated.View
-    entering={FadeInUp.delay(120).springify()}
+ <Animated.View entering={FadeInUp.delay(120).springify()}>
+  <LinearGradient
+    colors={getWeatherGradient(weather.condition)}
+    start={{ x: 0, y: 0 }}
+    end={{ x: 1, y: 1 }}
     style={{
-      backgroundColor: palette.card,
       borderRadius: 14,
       padding: 14,
       marginBottom: 20,
@@ -501,15 +520,14 @@ const WeatherErrorCard = () => {
           shadowRadius: 12,
         },
         android: { elevation: 6 },
-        web: { boxShadow: "0 6px 20px rgba(49,130,206,0.15)" },
       }),
     }}
   >
     <View>
-      <Text style={{ fontSize: 18, fontWeight: "600", color: palette.text }}>
+      <Text style={{ fontSize: 18, fontWeight: "600", color: "#fff" }}>
         {weather.city}
       </Text>
-      <Text style={{ fontSize: 14, color: palette.textSecondary }}>
+      <Text style={{ fontSize: 14, color: "#f0f0f0" }}>
         {weather.desc}
       </Text>
     </View>
@@ -521,13 +539,13 @@ const WeatherErrorCard = () => {
         resizeMode="contain"
       />
 
-      <Text
-        style={{ fontSize: 20, fontWeight: "700", color: palette.primary }}
-      >
+      <Text style={{ fontSize: 20, fontWeight: "700", color: "#fff" }}>
         {weather.temp}°C
       </Text>
     </View>
-  </Animated.View>
+  </LinearGradient>
+</Animated.View>
+
 )}
 
 {/* WEATHER ERROR */}
