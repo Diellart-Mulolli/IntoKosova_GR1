@@ -74,12 +74,42 @@ interface UserData {
 }
 
 const categories = [
-  { key: "historical sites" as const, icon: "castle", color: "#8B4513", label: "Historical Sites" },
-  { key: "natural wonders" as const, icon: "pine-tree", color: "#228B22", label: "Natural Wonders" },
-  { key: "cultural heritage" as const, icon: "theater", color: "#9932CC", label: "Cultural Heritage" },
-  { key: "modern kosovo" as const, icon: "city", color: "#1E90FF", label: "Modern Kosovo" },
-  { key: "culinary journey" as const, icon: "silverware-fork-knife", color: "#FF6347", label: "Culinary Journey" },
-  { key: "adventure sports" as const, icon: "hiking", color: "#FF8C00", label: "Adventure Sports" },
+  {
+    key: "historical sites" as const,
+    icon: "castle",
+    color: "#8B4513",
+    label: "Historical Sites",
+  },
+  {
+    key: "natural wonders" as const,
+    icon: "pine-tree",
+    color: "#228B22",
+    label: "Natural Wonders",
+  },
+  {
+    key: "cultural heritage" as const,
+    icon: "theater",
+    color: "#9932CC",
+    label: "Cultural Heritage",
+  },
+  {
+    key: "modern kosovo" as const,
+    icon: "city",
+    color: "#1E90FF",
+    label: "Modern Kosovo",
+  },
+  {
+    key: "culinary journey" as const,
+    icon: "silverware-fork-knife",
+    color: "#FF6347",
+    label: "Culinary Journey",
+  },
+  {
+    key: "adventure sports" as const,
+    icon: "hiking",
+    color: "#FF8C00",
+    label: "Adventure Sports",
+  },
 ];
 
 const createStyles = (palette: any) =>
@@ -87,8 +117,19 @@ const createStyles = (palette: any) =>
     container: { flex: 1, backgroundColor: palette.background },
     center: { flex: 1, justifyContent: "center", alignItems: "center" },
     loadingText: { marginTop: 16, fontSize: 16, color: palette.textSecondary },
-    authCard: { backgroundColor: palette.card, margin: 32, padding: 24, borderRadius: 16, elevation: 4 },
-    authTitle: { fontSize: 28, fontWeight: "bold", textAlign: "center", marginBottom: 24 },
+    authCard: {
+      backgroundColor: palette.card,
+      margin: 32,
+      padding: 24,
+      borderRadius: 16,
+      elevation: 4,
+    },
+    authTitle: {
+      fontSize: 28,
+      fontWeight: "bold",
+      textAlign: "center",
+      marginBottom: 24,
+    },
     input: {
       borderWidth: 1,
       borderColor: palette.border,
@@ -98,12 +139,24 @@ const createStyles = (palette: any) =>
       marginBottom: 16,
       fontSize: 16,
     },
-    btn: { backgroundColor: palette.primary, padding: 16, borderRadius: 8, alignItems: "center" },
+    btn: {
+      backgroundColor: palette.primary,
+      padding: 16,
+      borderRadius: 8,
+      alignItems: "center",
+    },
     btnDisabled: { opacity: 0.6 },
     btnText: { color: "#fff", fontWeight: "600", fontSize: 16 },
     switchBtn: { marginTop: 16, alignItems: "center" },
     switchText: { color: palette.primary, fontWeight: "600" },
-    logoutBtn: { position: "absolute", top: 16, right: 16, backgroundColor: "#ff4444", padding: 8, borderRadius: 8 },
+    logoutBtn: {
+      position: "absolute",
+      top: 16,
+      right: 16,
+      backgroundColor: "#ff4444",
+      padding: 8,
+      borderRadius: 8,
+    },
     logoutText: { color: "#fff", fontWeight: "600" },
     scroll: { padding: 16 },
     header: { alignItems: "center", marginBottom: 24, paddingTop: 50 },
@@ -114,9 +167,20 @@ const createStyles = (palette: any) =>
       borderWidth: 3,
       borderColor: palette.primary,
     },
-    name: { fontSize: 24, fontWeight: "bold", marginTop: 8, color: palette.text },
+    name: {
+      fontSize: 24,
+      fontWeight: "bold",
+      marginTop: 8,
+      color: palette.text,
+    },
     email: { fontSize: 16, color: palette.textSecondary },
-    addBtn: { backgroundColor: palette.primary, padding: 14, borderRadius: 12, alignItems: "center", marginBottom: 20 },
+    addBtn: {
+      backgroundColor: palette.primary,
+      padding: 14,
+      borderRadius: 12,
+      alignItems: "center",
+      marginBottom: 20,
+    },
     addText: { color: "#fff", fontWeight: "600" },
     row: { justifyContent: "space-between" },
     cardWrapper: { position: "relative", width: "48%", marginBottom: 16 },
@@ -156,7 +220,12 @@ const createStyles = (palette: any) =>
       borderWidth: 2,
     },
     removeText: { color: "#fff", fontSize: 18, fontWeight: "bold" },
-    empty: { textAlign: "center", color: palette.textSecondary, fontStyle: "italic", marginTop: 40 },
+    empty: {
+      textAlign: "center",
+      color: palette.textSecondary,
+      fontStyle: "italic",
+      marginTop: 40,
+    },
     instructions: {
       backgroundColor: palette.card,
       padding: 12,
@@ -165,12 +234,42 @@ const createStyles = (palette: any) =>
       borderWidth: 1,
       borderColor: palette.border,
     },
-    instructionsText: { color: palette.textSecondary, fontSize: 14, textAlign: "center" },
-    modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.7)", justifyContent: "center", alignItems: "center" },
-    modal: { backgroundColor: palette.card, width: "90%", borderRadius: 16, padding: 20 },
-    modalTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 16, textAlign: "center", color: palette.text },
-    label: { fontWeight: "600", marginBottom: 8, marginTop: 12, color: palette.text },
-    catGrid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", marginBottom: 16 },
+    instructionsText: {
+      color: palette.textSecondary,
+      fontSize: 14,
+      textAlign: "center",
+    },
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: "rgba(0,0,0,0.7)",
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    modal: {
+      backgroundColor: palette.card,
+      width: "90%",
+      borderRadius: 16,
+      padding: 20,
+    },
+    modalTitle: {
+      fontSize: 18,
+      fontWeight: "bold",
+      marginBottom: 16,
+      textAlign: "center",
+      color: palette.text,
+    },
+    label: {
+      fontWeight: "600",
+      marginBottom: 8,
+      marginTop: 12,
+      color: palette.text,
+    },
+    catGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      justifyContent: "space-between",
+      marginBottom: 16,
+    },
     catCircle: {
       width: 64,
       height: 64,
@@ -196,12 +295,35 @@ const createStyles = (palette: any) =>
       borderWidth: 4,
       borderColor: palette.background,
     },
-    status: { flexDirection: "row", alignItems: "center", justifyContent: "center", marginVertical: 12 },
+    status: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      marginVertical: 12,
+    },
     statusText: { marginLeft: 8, color: palette.textSecondary },
     successText: { color: "#4CAF50", fontWeight: "600" },
-    modalBtns: { flexDirection: "row", justifyContent: "space-between", marginTop: 20 },
-    cancelBtn: { padding: 12, flex: 1, marginRight: 6, alignItems: "center", backgroundColor: palette.border, borderRadius: 8 },
-    saveBtn: { backgroundColor: palette.primary, padding: 12, flex: 1, marginHorizontal: 3, borderRadius: 8, alignItems: "center" },
+    modalBtns: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginTop: 20,
+    },
+    cancelBtn: {
+      padding: 12,
+      flex: 1,
+      marginRight: 6,
+      alignItems: "center",
+      backgroundColor: palette.border,
+      borderRadius: 8,
+    },
+    saveBtn: {
+      backgroundColor: palette.primary,
+      padding: 12,
+      flex: 1,
+      marginHorizontal: 3,
+      borderRadius: 8,
+      alignItems: "center",
+    },
     addBtnStyle: { backgroundColor: "#4CAF50" },
     saveText: { color: "#fff", fontWeight: "600" },
   });
@@ -304,13 +426,17 @@ const AuthForm = React.memo(
           {authLoading ? (
             <ActivityIndicator color="#fff" />
           ) : (
-            <Text style={styles.btnText}>{isSignUp ? "Sign Up" : "Log In"}</Text>
+            <Text style={styles.btnText}>
+              {isSignUp ? "Sign Up" : "Log In"}
+            </Text>
           )}
         </Pressable>
 
         <Pressable style={styles.switchBtn} onPress={toggleSignUp}>
           <Text style={styles.switchText}>
-            {isSignUp ? "Already have an account? Log In" : "No account? Sign Up"}
+            {isSignUp
+              ? "Already have an account? Log In"
+              : "No account? Sign Up"}
           </Text>
         </Pressable>
       </Animated.View>
@@ -346,7 +472,9 @@ export default function ProfileScreen() {
     category: "historical sites" as Photo["category"],
   });
 
-  const [uploadStatus, setUploadStatus] = useState<"idle" | "uploading" | "success">("idle");
+  const [uploadStatus, setUploadStatus] = useState<
+    "idle" | "uploading" | "success"
+  >("idle");
   const [uploadMessage, setUploadMessage] = useState<string | null>(null);
 
   // === THEME SYNC ===
@@ -404,7 +532,11 @@ export default function ProfileScreen() {
       await setDoc(userRef, {
         uid: firebaseUser.uid,
         userId: nextId,
-        fullName: fullName || firebaseUser.displayName || firebaseUser.email?.split("@")[0] || "User",
+        fullName:
+          fullName ||
+          firebaseUser.displayName ||
+          firebaseUser.email?.split("@")[0] ||
+          "User",
         emailOrPhone: emailOrPhone || firebaseUser.email || "",
         birthDate: birthDate || "",
         createdAt: serverTimestamp(),
@@ -469,9 +601,12 @@ export default function ProfileScreen() {
     const relativePath = `${BASE_PATH}/${userId}/photos/${fileName}`;
 
     try {
-      await FileSystem.makeDirectoryAsync(`${FileSystem.documentDirectory}dataStorage/${userId}/photos`, {
-        intermediates: true,
-      });
+      await FileSystem.makeDirectoryAsync(
+        `${FileSystem.documentDirectory}dataStorage/${userId}/photos`,
+        {
+          intermediates: true,
+        }
+      );
       await FileSystem.copyAsync({ from: result.assets[0].uri, to: localUri });
 
       const newPhoto: Photo = {
@@ -497,7 +632,12 @@ export default function ProfileScreen() {
         setUploadStatus("idle");
         setUploadMessage(null);
         setEditModal(false);
-        setForm({ city: "Prishtina", place: "", description: "", category: "historical sites" });
+        setForm({
+          city: "Prishtina",
+          place: "",
+          description: "",
+          category: "historical sites",
+        });
       }, 1500);
     } catch (err: any) {
       Alert.alert("Upload Failed", err.message);
@@ -533,7 +673,12 @@ export default function ProfileScreen() {
     });
     await AsyncStorage.setItem(`photos_${uid}`, JSON.stringify(updated));
     setEditModal(false);
-    setForm({ city: "Prishtina", place: "", description: "", category: "historical sites" });
+    setForm({
+      city: "Prishtina",
+      place: "",
+      description: "",
+      category: "historical sites",
+    });
   };
 
   const startEdit = (photo: Photo) => {
@@ -554,7 +699,11 @@ export default function ProfileScreen() {
       p.id === editingPhoto.id ? { ...p, ...form } : p
     );
     setPhotos(updatedPhotos);
-    await setDoc(doc(db, "users", uid), { images: updatedPhotos }, { merge: true });
+    await setDoc(
+      doc(db, "users", uid),
+      { images: updatedPhotos },
+      { merge: true }
+    );
     await AsyncStorage.setItem(`photos_${uid}`, JSON.stringify(updatedPhotos));
     setEditModal(false);
     setEditingPhoto(null);
@@ -568,15 +717,25 @@ export default function ProfileScreen() {
         style: "destructive",
         onPress: async () => {
           const uid = auth.currentUser!.uid;
+
+          // 1. HIQE MENJËHERË NGA UI
           const updated = photos.filter((p) => p.id !== photo.id);
           setPhotos(updated);
+
+          // 2. AsyncStorage update
           await AsyncStorage.setItem(`photos_${uid}`, JSON.stringify(updated));
 
+          // 3. Fshi nëse është lokalisht
           if (photo.image.includes(FileSystem.documentDirectory)) {
             await FileSystem.deleteAsync(photo.image, { idempotent: true });
           }
 
-          await updateDoc(doc(db, "users", uid), { images: arrayRemove(photo) });
+          // 4. Përditëso Firestore duke shkruar array-n komplet
+          await setDoc(
+            doc(db, "users", uid),
+            { images: updated },
+            { merge: true }
+          );
         },
       },
     ]);
@@ -661,24 +820,44 @@ export default function ProfileScreen() {
                   style={[styles.card, { borderColor }]}
                   onLongPress={() => startEdit(item)}
                 >
-                  <Image source={{ uri: item.image }} style={styles.cardImg} defaultSource={placeholderImg} />
+                  <Image
+                    source={{ uri: item.image }}
+                    style={styles.cardImg}
+                    defaultSource={placeholderImg}
+                  />
                   <View style={styles.cardContent}>
                     <Text style={styles.place}>{item.place}</Text>
                     <Text style={styles.city}>{item.city}</Text>
-                    <Text style={styles.desc} numberOfLines={2}>{item.description}</Text>
-                    <View style={[styles.categoryBadge, { backgroundColor: borderColor }]}>
-                      <MaterialCommunityIcons name={cat?.icon as any} size={14} color="#fff" />
+                    <Text style={styles.desc} numberOfLines={2}>
+                      {item.description}
+                    </Text>
+                    <View
+                      style={[
+                        styles.categoryBadge,
+                        { backgroundColor: borderColor },
+                      ]}
+                    >
+                      <MaterialCommunityIcons
+                        name={cat?.icon as any}
+                        size={14}
+                        color="#fff"
+                      />
                     </View>
                   </View>
                 </Pressable>
 
-                <Pressable style={styles.removeBtn} onPress={() => deletePhoto(item)}>
+                <Pressable
+                  style={styles.removeBtn}
+                  onPress={() => deletePhoto(item)}
+                >
                   <Text style={styles.removeText}>X</Text>
                 </Pressable>
               </View>
             );
           }}
-          ListEmptyComponent={<Text style={styles.empty}>No photos yet. Tap + to add!</Text>}
+          ListEmptyComponent={
+            <Text style={styles.empty}>No photos yet. Tap + to add!</Text>
+          }
         />
       </ScrollView>
 
@@ -731,7 +910,11 @@ export default function ProfileScreen() {
                     ]}
                     onPress={() => setForm({ ...form, category: cat.key })}
                   >
-                    <MaterialCommunityIcons name={cat.icon} size={28} color="#fff" />
+                    <MaterialCommunityIcons
+                      name={cat.icon}
+                      size={28}
+                      color="#fff"
+                    />
                     {isSelected && <View style={styles.selectedBorder} />}
                   </Pressable>
                 );
@@ -756,7 +939,12 @@ export default function ProfileScreen() {
                 onPress={() => {
                   setEditModal(false);
                   setEditingPhoto(null);
-                  setForm({ city: "Prishtina", place: "", description: "", category: "historical sites" });
+                  setForm({
+                    city: "Prishtina",
+                    place: "",
+                    description: "",
+                    category: "historical sites",
+                  });
                   setUploadStatus("idle");
                   setUploadMessage(null);
                 }}
@@ -777,10 +965,32 @@ export default function ProfileScreen() {
                 disabled={uploadStatus === "uploading"}
               >
                 <Text style={styles.saveText}>
-                  {editingPhoto ? "Save" : uploadStatus === "uploading" ? "Uploading..." : "Pick & Upload"}
+                  {editingPhoto
+                    ? "Save"
+                    : uploadStatus === "uploading"
+                    ? "Uploading..."
+                    : "Pick & Upload"}
                 </Text>
               </Pressable>
             </View>
+            {editingPhoto && (
+              <Pressable
+                style={{
+                  marginTop: 12,
+                  backgroundColor: "#ff4444",
+                  padding: 12,
+                  borderRadius: 8,
+                  alignItems: "center",
+                }}
+                onPress={() => {
+                  deletePhoto(editingPhoto);
+                  setEditModal(false);
+                  setEditingPhoto(null);
+                }}
+              >
+                <Text style={{ color: "#fff", fontWeight: "600" }}>Delete</Text>
+              </Pressable>
+            )}
           </View>
         </View>
       </Modal>
