@@ -15,11 +15,18 @@ import {
 } from "react-native";
 import { GlassView } from "expo-glass-effect";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
+import Animated, { 
+  FadeInDown,
+  FadeInUp,
+  useSharedValue,
+  useAnimatedStyle,
+  withRepeat,
+  withTiming
+} from "react-native-reanimated";
+
 import * as Location from "expo-location";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient"; 
-
 // ------------------------------------
 // FEATURE LIST
 // ------------------------------------
@@ -275,6 +282,50 @@ export default function HomeScreen() {
   const [weather, setWeather] = useState<any>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [weatherError, setWeatherError] = useState<null | "location" | "network" | "api" | "unknown">(null);
+  const [pullY, setPullY] = useState(0);
+  const scrollY = useSharedValue(0);
+
+const spinValue = useSharedValue(0);
+const pulseValue = useSharedValue(1);
+
+const rotateStyle = useAnimatedStyle(() => {
+  return {
+    transform: [
+      {
+        rotate: `${spinValue.value * 360}deg`
+      }
+    ]
+  };
+});
+
+// Pulsimi i rrethit të madh
+const pulseStyle = useAnimatedStyle(() => {
+  return {
+    transform: [
+      {
+        scale: pulseValue.value
+      }
+    ],
+    opacity: pulseValue.value
+  };
+});
+
+const startPremiumSpinner = () => {
+  // Rrotullim i pafund
+  spinValue.value = withRepeat(
+    withTiming(1, { duration: 900 }),
+    -1,
+    false
+  );
+
+  // Pulsim i butë
+  pulseValue.value = withRepeat(
+    withTiming(0.4, { duration: 700 }),
+    -1,
+    true
+  );
+};
+
 
 const fetchWeather = async (forceRefresh = false) => {
   try {
@@ -431,10 +482,15 @@ const WeatherErrorCard = () => {
 
  const onRefresh = async () => {
   setRefreshing(true);
-  await fetchWeather(true); // FORCE refresh
+
+  spinValue.value = 0;
+  pulseValue.value = 1;
+  startPremiumSpinner();
+
+  await fetchWeather(true);
+
   setRefreshing(false);
 };
-
 
   const renderFeatureCard = (feature: typeof features[0], index: number) => {
     const featureColor = palette[feature.colorKey];
@@ -489,14 +545,79 @@ const WeatherErrorCard = () => {
         </Text>
       </Animated.View>
 
-      <ScrollView
-        style={styles.content}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 20 }}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-      >
+  <Animated.ScrollView
+  style={styles.content}
+  showsVerticalScrollIndicator={false}
+  contentContainerStyle={{ paddingBottom: 20 }}
+  onScroll={(event) => {
+  const y = event.nativeEvent.contentOffset.y;
+  scrollY.value = y;
+
+  if (y < -60 && !refreshing) {
+    startPremiumSpinner();
+    onRefresh();
+  }
+}}
+
+  scrollEventThrottle={16}
+
+>
+
+
+  {scrollY.value < -40 && (
+  <Animated.View
+    style={[
+      {
+        position: "absolute",
+        top: -80,
+        left: "50%",
+        transform: [{ translateX: -25 }],
+        width: 50,
+        height: 50,
+        justifyContent: "center",
+        alignItems: "center",
+      },
+    ]}
+  >
+    {/* Pulsimi */}
+    <Animated.View
+      style={[
+        {
+          position: "absolute",
+          width: 40,
+          height: 40,
+          borderRadius: 20,
+          backgroundColor: "rgba(255,255,255,0.3)",
+        },
+        pulseStyle,
+      ]}
+    />
+
+    {/* Rrotullimi */}
+    <Animated.View
+      style={[
+        {
+          width: 50,
+          height: 50,
+          justifyContent: "center",
+          alignItems: "center",
+        },
+        rotateStyle,
+      ]}
+    >
+      <View
+        style={{
+          width: 10,
+          height: 10,
+          backgroundColor: "#fff",
+          borderRadius: 5,
+        }}
+      />
+    </Animated.View>
+  </Animated.View>
+)}
+
+
         {/* WEATHER */}
         {/* WEATHER SUCCESS */}
 {weather && !weatherError && (
@@ -628,7 +749,7 @@ const WeatherErrorCard = () => {
         <View style={styles.featuresContainer}>
           {features.map((feature, index) => renderFeatureCard(feature, index))}
         </View>
-      </ScrollView>
+      </Animated.ScrollView>
     </SafeAreaView>
   );
 }
