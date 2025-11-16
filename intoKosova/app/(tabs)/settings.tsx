@@ -209,7 +209,9 @@ export default function SettingsScreen() {
               About This App
             </Text>
 
-            <Text style={[styles.aboutText, { color: colors.textSecondary }]}>
+            <Text
+              style={[styles.aboutText, { color: isDark ? "#F5F5DC" : "#000" }]}
+            >
               Version: {Application.nativeApplicationVersion || "1.0.0"}
             </Text>
 
