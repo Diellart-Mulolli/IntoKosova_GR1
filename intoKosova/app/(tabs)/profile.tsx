@@ -20,6 +20,8 @@ import {
   GoogleAuthProvider,
   signInWithPopup,
   signOut,
+  signInWithPhoneNumber,
+  RecaptchaVerifier,
 } from "firebase/auth";
 import { auth } from "../../firebase";
 import { AntDesign } from "@expo/vector-icons";
@@ -45,6 +47,11 @@ export default function ProfileScreen() {
   const [newPassword, setNewPassword] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
   const [sentCode, setSentCode] = useState(null);
+  const [phoneNumber, setPhoneNumber] = useState("");
+const [phoneCode, setPhoneCode] = useState("");
+const [confirmResult, setConfirmResult] = useState<any>(null);
+const [usePhoneLogin, setUsePhoneLogin] = useState(false); 
+
 
   const generateCode = () =>
     Math.floor(100000 + Math.random() * 900000).toString();
@@ -56,6 +63,83 @@ export default function ProfileScreen() {
     if (m < 0 || (m === 0 && today.getDate() < day)) age--;
     return age;
   };
+ 
+// reCAPTCHA setup for phone auth (WEB)
+const setUpRecaptcha = () => {
+  if (typeof window === "undefined") return null;
+
+  if (!(window as any).recaptchaVerifier) {
+    (window as any).recaptchaVerifier = new RecaptchaVerifier(
+      auth,
+      "recaptcha-container",
+      {
+        size: "invisible",
+        callback: () => {
+          // reCAPTCHA solved
+        },
+      }
+    );
+  }
+  return (window as any).recaptchaVerifier;
+};
+
+const handleSendPhoneCode = async () => {
+  setErrorMessage("");
+
+  if (!phoneNumber) {
+    setErrorMessage("Please enter your phone number.");
+    return;
+  }
+
+  try {
+    const appVerifier = setUpRecaptcha();
+    if (!appVerifier) {
+      setErrorMessage(
+        "reCAPTCHA is not available. Phone auth works only on web with this setup."
+      );
+      return;
+    }
+
+    // Shembull formati: +38344XXXXXX
+    const confirmation = await signInWithPhoneNumber(
+      auth,
+      phoneNumber,
+      appVerifier
+    );
+    setConfirmResult(confirmation);
+    Alert.alert("Code sent", "We’ve sent an SMS code to your phone.");
+  } catch (error: any) {
+    console.log(error);
+    setErrorMessage(error.message || "Failed to send verification code.");
+  }
+};
+
+const handleConfirmPhoneCode = async () => {
+  setErrorMessage("");
+
+  if (!confirmResult || !phoneCode) {
+    setErrorMessage("Please enter the code we sent to your phone.");
+    return;
+  }
+
+  try {
+    const result = await confirmResult.confirm(phoneCode);
+    const user = result.user;
+
+    setCurrentUser({
+      fullName: user.displayName || "Phone User",
+      emailOrPhone: user.phoneNumber,
+    });
+
+    setIsAuthenticated(true);
+    router.replace("/(tabs)/homepage");
+  } catch (error: any) {
+    console.log(error);
+    setErrorMessage("Invalid code. Please try again.");
+  }
+};
+
+
 
   /* ---------------- SIGNUP HANDLER ---------------- */
   const handleSignUp = async () => {
@@ -149,88 +233,144 @@ export default function ProfileScreen() {
     setCurrentUser(null);
   };
 
-  /* ---------------- AUTH UI ---------------- */
+    /* ---------------- AUTH UI ---------------- */
   if (!isAuthenticated) {
     return (
       <SafeAreaView
         style={[styles.authContainer, { backgroundColor: theme.background }]}
       >
         <Animated.View entering={FadeInUp.springify()}>
+          {/* TITULLI – ndryshon në varësi a je në phone apo email */}
           <Text style={[styles.authTitle, { color: theme.text }]}>
-            {isSignUp ? "Create your account" : "Welcome back"}
+            {usePhoneLogin
+              ? "Sign in with phone"
+              : isSignUp
+              ? "Create your account"
+              : "Welcome back"}
           </Text>
 
-          {isSignUp && (
+          {/* NËSE JEMI NË MODE PHONE LOGIN */}
+          {usePhoneLogin ? (
             <>
-            <TextInput
-              placeholder="Full name"
-              placeholderTextColor={theme.textSecondary}
-              style={[
-                styles.input,
-                {
-                  backgroundColor: colorScheme === "dark" ? "#1A1A1A" : "#fff",
-                  borderColor: colorScheme === "dark" ? "#333" : "#ddd",
-                  color: theme.text,
-                },
-              ]}
-              value={fullName}
-              onChangeText={setFullName}
-            />
+              <TextInput
+                placeholder="Phone number (e.g. +38344XXXXXX)"
+                placeholderTextColor={theme.textSecondary}
+                style={[
+                  styles.input,
+                  {
+                    backgroundColor:
+                      colorScheme === "dark" ? "#1A1A1A" : "#fff",
+                    borderColor: colorScheme === "dark" ? "#333" : "#ddd",
+                    color: theme.text,
+                  },
+                ]}
+                value={phoneNumber}
+                onChangeText={setPhoneNumber}
+                keyboardType="phone-pad"
+              />
 
-          <TextInput
-            placeholder="Birth Date (DD/MM/YYYY)"
-            placeholderTextColor={theme.textSecondary}
-            style={[
-              styles.input, 
-              {
-                backgroundColor: colorScheme === "dark" ? "#1A1A1A" : "#fff",
-                borderColor: colorScheme === "dark" ? "#333" : "#ddd",
-                color: theme.text,
-             },
-            ]}
-             value={birthDate}
-             onChangeText={setBirthDate}
-            />
-             </>
+              {confirmResult && (
+                <TextInput
+                  placeholder="Verification code"
+                  placeholderTextColor={theme.textSecondary}
+                  style={[
+                    styles.input,
+                    {
+                      backgroundColor:
+                        colorScheme === "dark" ? "#1A1A1A" : "#fff",
+                      borderColor: colorScheme === "dark" ? "#333" : "#ddd",
+                      color: theme.text,
+                    },
+                  ]}
+                  value={phoneCode}
+                  onChangeText={setPhoneCode}
+                  keyboardType="number-pad"
+                />
+              )}
+            </>
+          ) : (
+            /* NËSE JEMI NË MODE EMAIL/PASSWORD (SI MË PARË) */
+            <>
+              {isSignUp && (
+                <>
+                  <TextInput
+                    placeholder="Full name"
+                    placeholderTextColor={theme.textSecondary}
+                    style={[
+                      styles.input,
+                      {
+                        backgroundColor:
+                          colorScheme === "dark" ? "#1A1A1A" : "#fff",
+                        borderColor:
+                          colorScheme === "dark" ? "#333" : "#ddd",
+                        color: theme.text,
+                      },
+                    ]}
+                    value={fullName}
+                    onChangeText={setFullName}
+                  />
+
+                  <TextInput
+                    placeholder="Birth Date (DD/MM/YYYY)"
+                    placeholderTextColor={theme.textSecondary}
+                    style={[
+                      styles.input,
+                      {
+                        backgroundColor:
+                          colorScheme === "dark" ? "#1A1A1A" : "#fff",
+                        borderColor:
+                          colorScheme === "dark" ? "#333" : "#ddd",
+                        color: theme.text,
+                      },
+                    ]}
+                    value={birthDate}
+                    onChangeText={setBirthDate}
+                  />
+                </>
+              )}
+
+              <TextInput
+                placeholder="Email"
+                placeholderTextColor={theme.textSecondary}
+                style={[
+                  styles.input,
+                  {
+                    backgroundColor:
+                      colorScheme === "dark" ? "#1A1A1A" : "#fff",
+                    borderColor: colorScheme === "dark" ? "#333" : "#ddd",
+                    color: theme.text,
+                  },
+                ]}
+                value={emailOrPhone}
+                onChangeText={setEmailOrPhone}
+                keyboardType="email-address"
+                autoCapitalize="none"
+              />
+
+              <TextInput
+                placeholder="Password"
+                placeholderTextColor={theme.textSecondary}
+                style={[
+                  styles.input,
+                  {
+                    backgroundColor:
+                      colorScheme === "dark" ? "#1A1A1A" : "#fff",
+                    borderColor: colorScheme === "dark" ? "#333" : "#ddd",
+                    color: theme.text,
+                  },
+                ]}
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+              />
+            </>
           )}
-
-          <TextInput
-            placeholder="Email or phone number"
-            placeholderTextColor={theme.textSecondary}
-            style={[
-              styles.input,
-              {
-                backgroundColor: colorScheme === "dark" ? "#1A1A1A" : "#fff",
-                borderColor: colorScheme === "dark" ? "#333" : "#ddd",
-                color: theme.text,
-              },
-            ]}
-            value={emailOrPhone}
-            onChangeText={setEmailOrPhone}
-          />
-
-
-
-          <TextInput
-            placeholder="Password"
-            placeholderTextColor={theme.textSecondary}
-            style={[
-              styles.input,
-              {
-                backgroundColor: colorScheme === "dark" ? "#1A1A1A" : "#fff",
-                borderColor: colorScheme === "dark" ? "#333" : "#ddd",
-                color: theme.text,
-              },
-            ]}
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-          />
 
           {errorMessage ? (
             <Text style={styles.errorText}>{errorMessage}</Text>
           ) : null}
 
+          {/* BUTONI KRYESOR – sjellje ndryshe për phone vs email */}
           <Pressable
             style={[
               styles.button,
@@ -239,10 +379,33 @@ export default function ProfileScreen() {
                   colorScheme === "dark" ? "#005FCC" : theme.primary,
               },
             ]}
-            onPress={isSignUp ? handleSignUp : handleSignIn}
+            onPress={
+              usePhoneLogin
+                ? confirmResult
+                  ? handleConfirmPhoneCode // pasi të jetë dërguar kodi
+                  : handleSendPhoneCode // dërgon SMS-in
+                : isSignUp
+                ? handleSignUp
+                : handleSignIn
+            }
           >
             <Text style={styles.buttonText}>
-              {isSignUp ? "Sign Up" : "Sign In"}
+              {usePhoneLogin
+                ? confirmResult
+                  ? "Confirm Code"
+                  : "Send Code"
+                : isSignUp
+                ? "Sign Up"
+                : "Sign In"}
+            </Text>
+          </Pressable>
+
+          {/* TOGGLE mes email & phone */}
+          <Pressable onPress={() => setUsePhoneLogin(!usePhoneLogin)}>
+            <Text style={[styles.linkText, { color: theme.primary }]}>
+              {usePhoneLogin
+                ? "Use email & password instead"
+                : "Use phone number instead"}
             </Text>
           </Pressable>
 
@@ -251,7 +414,8 @@ export default function ProfileScreen() {
               style={[
                 styles.googleBtn,
                 {
-                  backgroundColor: colorScheme === "dark" ? "#111" : "#fff",
+                  backgroundColor:
+                    colorScheme === "dark" ? "#111" : "#fff",
                   borderColor: colorScheme === "dark" ? "#333" : "#ddd",
                 },
               ]}
@@ -269,6 +433,7 @@ export default function ProfileScreen() {
             </Pressable>
           )}
 
+          {/* Switch Sign In / Sign Up */}
           <Pressable onPress={() => setIsSignUp(!isSignUp)}>
             <Text style={[styles.linkText, { color: theme.primary }]}>
               {isSignUp
@@ -277,9 +442,14 @@ export default function ProfileScreen() {
             </Text>
           </Pressable>
         </Animated.View>
+
+        {/* reCAPTCHA container (WEB) */}
+        <View id="recaptcha-container" />
       </SafeAreaView>
     );
   }
+
+
 
   /* ---------------- PROFILE UI ---------------- */
   return (
