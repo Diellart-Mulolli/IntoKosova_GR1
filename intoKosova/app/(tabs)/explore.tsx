@@ -13,7 +13,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
 import { useRouter } from "expo-router";
 import { useThemeManager } from "@/contexts/ThemeContext";
-import CategoryCard from "@/components/CategoryCard";
+import CategoryCard from "@/components/category-card";
 
 // ----------------------------------------------------------------------
 // CATEGORY LIST (pa ndryshime!)
