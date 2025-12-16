@@ -60,15 +60,15 @@ export const ThemeProvider = ({ children }: any) => {
   };
 
   const darkColors: Palette = {
-    text: "#fff",
-    textSecondary: "#aaa",
-    background: "#000",
-    card: "#111",
-    primary: "#1E90FF",
-    accent: "#FF6347",
-    highlight: "#FFD700",
-    secondary: "#B794F4",
-    lightBlue: "#2A4365",
+    text: "#E4E4E7",
+    textSecondary: "#A1A1AA",
+    background: "#0F0F10",
+    card: "#18181B",
+    primary: "#3B82F6",
+    accent: "#FF6B6B",
+    highlight: "#FACC15",
+    secondary: "#9F7AEA",
+    lightBlue: "#1E3A8A",
   };
 
   return (
@@ -77,6 +77,7 @@ export const ThemeProvider = ({ children }: any) => {
         theme,
         setTheme,
         colorScheme,
+        isDark: colorScheme === "dark",
         colors: {
           light: lightColors,
           dark: darkColors,
