@@ -207,8 +207,6 @@ export default function ProfileScreen() {
   const [birthDate, setBirthDate] = useState("");
   const [emailOrPhone, setEmailOrPhone] = useState("");
   const [password, setPassword] = useState("");
-  const [fullName, setFullName] = useState("");
-  const [birthDate, setBirthDate] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [registeredUsers, setRegisteredUsers] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
@@ -216,9 +214,37 @@ export default function ProfileScreen() {
   const [verificationCode, setVerificationCode] = useState("");
   const [sentCode, setSentCode] = useState(null);
   const [phoneNumber, setPhoneNumber] = useState("");
-const [phoneCode, setPhoneCode] = useState("");
-const [confirmResult, setConfirmResult] = useState<any>(null);
-const [usePhoneLogin, setUsePhoneLogin] = useState(false); 
+  const [phoneCode, setPhoneCode] = useState("");
+  const [confirmResult, setConfirmResult] = useState<any>(null);
+  const [usePhoneLogin, setUsePhoneLogin] = useState(false); 
+  const [authLoading, setAuthLoading] = useState(false);
+  const [photos, setPhotos] = useState<Photo[]>([]);
+  const [hiddenCards, setHiddenCards] = useState<string[]>([]);
+  const [editModal, setEditModal] = useState(false);
+  const [editingPhoto, setEditingPhoto] = useState<Photo | null>(null);
+  const [form, setForm] = useState({
+    city: "Prishtina",
+    place: "",
+    description: "",
+    category: "historical sites",
+    image: "",
+  });
+    const colorScheme = isDark ? "dark" : "light";
+    useEffect(() => {
+  const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+    if (firebaseUser) {
+      setIsLoggedIn(true);
+      await loadUserData(firebaseUser.uid);
+    } else {
+      setIsLoggedIn(false);
+      setUser(null);
+    }
+
+    setLoading(false);
+  });
+
+  return unsubscribe;
+}, []);
 
 
   const generateCode = () =>
@@ -661,70 +687,14 @@ const handleConfirmPhoneCode = async () => {
                 : "Don't have an account? Sign Up"}
             </Text>
           </Pressable>
-        </Animated.View>
-
-        {/* reCAPTCHA container (WEB) */}
-        <View id="recaptcha-container" />
-      </SafeAreaView>
-    );
-  }
-
-
-
-  /* ---------------- PROFILE UI ---------------- */
-  return (
-    <SafeAreaView
-      style={[styles.container, { backgroundColor: theme.background }]}
-    >
-      <Animated.View entering={FadeInUp.springify()} style={styles.header}>
-        <View style={[styles.profileImage, { backgroundColor: theme.primary }]}>
-          <IconSymbol name="person.fill" size={40} color="#fff" />
-        </View>
-
-        <Text style={[styles.profileName, { color: theme.text }]}>
-          {currentUser?.fullName}
-        </Text>
-        <Text style={[styles.profileEmail, { color: theme.textSecondary }]}>
-          {currentUser?.emailOrPhone}
-        </Text>
-      </Animated.View>
-
-      <ScrollView style={{ paddingHorizontal: 20 }}>
-        <View
-          style={[
-            styles.statsContainer,
-            {
-              backgroundColor: colorScheme === "dark" ? "#111" : theme.card,
-            },
-          ]}
-        >
-          <View style={styles.statItem}>
-            <Text style={[styles.statNumber, { color: theme.primary }]}>0</Text>
-            <Text style={[styles.statLabel, { color: theme.textSecondary }]}>
-              Places Visited
-            </Text>
           </View>
+              </ScrollView>
 
-          <View style={styles.statItem}>
-            <Text style={[styles.statNumber, { color: theme.primary }]}>0</Text>
-            <Text style={[styles.statLabel, { color: theme.textSecondary }]}>
-              Favorites
-            </Text>
-          </View>
-
-          <View style={styles.statItem}>
-            <Text style={[styles.statNumber, { color: theme.primary }]}>0</Text>
-            <Text style={[styles.statLabel, { color: theme.textSecondary }]}>
-              Photos
-            </Text>
-          </View>
-        </View>
-      </ScrollView>
+      {/* reCAPTCHA container (WEB) */}
+      <View id="recaptcha-container" />
     </View>
   </View>
 </Modal>
-
-
-    </SafeAreaView>
+  </SafeAreaView>
   );
 }
