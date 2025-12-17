@@ -7,6 +7,7 @@ import { useTheme } from "@react-navigation/native";
 import { useThemeManager } from "@/contexts/ThemeContext";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { useRef, useState } from "react";
+import { useRouter } from "expo-router";
 
 
 export default function CreateScreen() {
@@ -16,63 +17,8 @@ export default function CreateScreen() {
 
   const styles = createStyles(palette);
 
-  const cameraRef = useRef<CameraView | null>(null);
-
-const [permission, requestPermission] = useCameraPermissions();
-const [isCameraOpen, setIsCameraOpen] = useState(false);
-const [photoUri, setPhotoUri] = useState<string | null>(null);
-
-const openCamera = async () => {
-  if (!permission) {
-    await requestPermission();
-    setIsCameraOpen(true);
-    return;
-  }
-
-  if (!permission.granted) {
-    const res = await requestPermission();
-    if (!res.granted) return;
-  }
-
-  setIsCameraOpen(true);
-};
-
-const takePhoto = async () => {
-  if (!cameraRef.current) return;
-
-  const photo = await cameraRef.current.takePictureAsync({
-    quality: 0.8,
-  });
-
-  setPhotoUri(photo.uri);
-  setIsCameraOpen(false);
-};
-
-if (isCameraOpen) {
-  return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "black" }}>
-      <CameraView
-        ref={cameraRef}
-        style={{ flex: 1 }}
-        facing="back"
-      />
-
-      <Pressable
-        onPress={takePhoto}
-        style={{
-          position: "absolute",
-          bottom: 40,
-          alignSelf: "center",
-          width: 70,
-          height: 70,
-          borderRadius: 35,
-          backgroundColor: "#fff",
-        }}
-      />
-    </SafeAreaView>
-  );
-}
-
+  const router = useRouter();
+ 
 
   return (
     <SafeAreaView
@@ -97,8 +43,8 @@ if (isCameraOpen) {
             entering={FadeInDown.delay(200).springify()}
             style={[styles.cameraButton, { marginTop: 10 }]}
           >
-           <Pressable onPress={openCamera}>
-              <IconSymbol size={36} name="camera" color={palette.primary} />
+          <Pressable onPress={() => router.push("/camera")}>
+            <IconSymbol size={36} name="camera" color={palette.primary} />
           </Pressable>
           </Animated.View>
           <Animated.View
