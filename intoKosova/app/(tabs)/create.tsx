@@ -43,7 +43,14 @@ export default function CreateScreen() {
             entering={FadeInDown.delay(200).springify()}
             style={[styles.cameraButton, { marginTop: 10 }]}
           >
-          <Pressable onPress={() => router.push("/camera")}>
+          <Pressable
+            onPress={() =>
+              router.push({
+                pathname: "/camera",
+                params: { from: "create", fullscreen: "true" },
+              })
+            }
+          >
             <IconSymbol size={36} name="camera" color={palette.primary} />
           </Pressable>
           </Animated.View>

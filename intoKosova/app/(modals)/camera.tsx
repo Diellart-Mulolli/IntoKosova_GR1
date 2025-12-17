@@ -3,8 +3,13 @@ import { CameraView, useCameraPermissions } from "expo-camera";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRef, useEffect } from "react";
+import { useLocalSearchParams } from "expo-router";
 
 export default function CameraScreen() {
+  const params = useLocalSearchParams();
+  const from = params.from; // "create"
+  const fullscreen = params.fullscreen === "true";
+
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef<CameraView | null>(null);
   const router = useRouter();
