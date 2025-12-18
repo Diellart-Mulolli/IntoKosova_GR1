@@ -1,7 +1,7 @@
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import { useLocalSearchParams } from "expo-router";
 import { Pressable, View, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -14,7 +14,9 @@ export default function CameraScreen() {
 
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef<CameraView | null>(null);
+  const [facing, setFacing] = useState<"front" | "back">("back");
   const router = useRouter();
+  
 
   useEffect(() => {
     if (!permission?.granted) {
@@ -33,6 +35,10 @@ export default function CameraScreen() {
     router.back(); // ose router.replace me param
   };
 
+  const flipCamera = () => {
+  setFacing((prev) => (prev === "back" ? "front" : "back"));
+  };
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "black" }}>
       <Pressable
@@ -42,7 +48,17 @@ export default function CameraScreen() {
         <Ionicons name="arrow-back" size={28} color="white" />
       </Pressable>
 
-      <CameraView ref={cameraRef} style={{ flex: 1 }} facing="back" />
+      <Pressable onPress={flipCamera} style={styles.flipButton}>
+        <Ionicons name="camera-reverse" size={28} color="white" />
+      </Pressable>
+
+
+      <CameraView
+        ref={cameraRef}
+        style={{ flex: 1 }}
+        facing={facing}
+      />
+
 
       <Pressable
         onPress={takePhoto}
@@ -73,4 +89,18 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     zIndex: 100,
   },
+
+  flipButton: {
+  position: "absolute",
+  top: 50,
+  right: 20,
+  width: 44,
+  height: 44,
+  borderRadius: 22,
+  backgroundColor: "rgba(0,0,0,0.6)",
+  alignItems: "center",
+  justifyContent: "center",
+  zIndex: 100,
+},
+
 });
