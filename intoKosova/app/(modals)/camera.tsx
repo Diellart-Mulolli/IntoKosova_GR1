@@ -5,6 +5,8 @@ import { useRef, useEffect, useState } from "react";
 import { useLocalSearchParams } from "expo-router";
 import { Pressable, View, StyleSheet, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import * as ImageManipulator from "expo-image-manipulator";
+import { Text } from "react-native";
 
 
 export default function CameraScreen() {
@@ -16,6 +18,7 @@ export default function CameraScreen() {
   const cameraRef = useRef<CameraView | null>(null);
   const [facing, setFacing] = useState<"front" | "back">("back");
   const [photoUri, setPhotoUri] = useState<string | null>(null);
+  const [rotation, setRotation] = useState(0);
   const router = useRouter();
   
 
@@ -40,21 +43,61 @@ export default function CameraScreen() {
   setFacing((prev) => (prev === "back" ? "front" : "back"));
   };
 
+  const rotatePhoto = async () => {
+  if (!photoUri) return;
+
+  const result = await ImageManipulator.manipulateAsync(
+    photoUri,
+    [{ rotate: 90 }],
+    { compress: 0.9, format: ImageManipulator.SaveFormat.JPEG }
+  );
+
+  setPhotoUri(result.uri);
+  setRotation((prev) => prev + 90);
+};
+
+const cropPhoto = async () => {
+  if (!photoUri) return;
+
+  const result = await ImageManipulator.manipulateAsync(
+    photoUri,
+    [
+      {
+        crop: {
+          originX: 0,
+          originY: 0,
+          width: 1000,
+          height: 1000,
+        },
+      },
+    ],
+    { compress: 0.9, format: ImageManipulator.SaveFormat.JPEG }
+  );
+
+  setPhotoUri(result.uri);
+};
+
   if (photoUri) {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "black" }}>
-      <Image
-        source={{ uri: photoUri }}
-        style={{ flex: 1 }}
-        resizeMode="cover"
-      />
+      <Image source={{ uri: photoUri }} style={{ flex: 1 }} resizeMode="cover" />
 
-      {/* Back */}
-      <Pressable onPress={() => setPhotoUri(null)} style={styles.backButton}>
-        <Ionicons name="close" size={28} color="white" />
-      </Pressable>
+      {/* TOP ACTIONS */}
+      <View style={styles.topActions}>
+        <Pressable onPress={() => setPhotoUri(null)}>
+          <Ionicons name="refresh" size={28} color="white" />
+        </Pressable>
 
-      {/* Use photo */}
+        <Pressable onPress={rotatePhoto}>
+          <Ionicons name="refresh-circle" size={30} color="white" />
+        </Pressable>
+
+        <Pressable onPress={cropPhoto}>
+          <Ionicons name="crop" size={26} color="white" />
+        </Pressable>
+      </View>
+
+      {/* USE PHOTO */}
       <Pressable
         onPress={() =>
           router.replace({
@@ -135,15 +178,26 @@ const styles = StyleSheet.create({
 },
 
   useButton: {
-    position: "absolute",
-    bottom: 40,
-    alignSelf: "center",
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
-  }
+  position: "absolute",
+  bottom: 40,
+  alignSelf: "center",
+  width: 70,
+  height: 70,
+  borderRadius: 35,
+  backgroundColor: "#fff",
+  alignItems: "center",
+  justifyContent: "center",
+},
+
+  topActions: {
+  position: "absolute",
+  top: 50,
+  left: 0,
+  right: 0,
+  flexDirection: "row",
+  justifyContent: "space-around",
+  zIndex: 100,
+},
+
 
 });
