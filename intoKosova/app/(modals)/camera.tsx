@@ -3,7 +3,7 @@ import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRef, useEffect, useState } from "react";
 import { useLocalSearchParams } from "expo-router";
-import { Pressable, View, StyleSheet } from "react-native";
+import { Pressable, View, StyleSheet, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
 
@@ -15,6 +15,7 @@ export default function CameraScreen() {
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef<CameraView | null>(null);
   const [facing, setFacing] = useState<"front" | "back">("back");
+  const [photoUri, setPhotoUri] = useState<string | null>(null);
   const router = useRouter();
   
 
@@ -32,12 +33,42 @@ export default function CameraScreen() {
     if (!cameraRef.current) return;
 
     const photo = await cameraRef.current.takePictureAsync({ quality: 0.8 });
-    router.back(); // ose router.replace me param
+    setPhotoUri(photo.uri);
   };
 
   const flipCamera = () => {
   setFacing((prev) => (prev === "back" ? "front" : "back"));
   };
+
+  if (photoUri) {
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: "black" }}>
+      <Image
+        source={{ uri: photoUri }}
+        style={{ flex: 1 }}
+        resizeMode="cover"
+      />
+
+      {/* Back */}
+      <Pressable onPress={() => setPhotoUri(null)} style={styles.backButton}>
+        <Ionicons name="close" size={28} color="white" />
+      </Pressable>
+
+      {/* Use photo */}
+      <Pressable
+        onPress={() =>
+          router.replace({
+            pathname: "/(tabs)/create",
+            params: { photo: photoUri },
+          })
+        }
+        style={styles.useButton}
+      >
+        <Ionicons name="checkmark" size={30} color="black" />
+      </Pressable>
+    </SafeAreaView>
+  );
+}
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "black" }}>
@@ -102,5 +133,17 @@ const styles = StyleSheet.create({
   justifyContent: "center",
   zIndex: 100,
 },
+
+  useButton: {
+    position: "absolute",
+    bottom: 40,
+    alignSelf: "center",
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    backgroundColor: "#fff",
+    alignItems: "center",
+    justifyContent: "center",
+  }
 
 });
