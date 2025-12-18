@@ -1,9 +1,11 @@
-import { View, Pressable } from "react-native";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRef, useEffect } from "react";
 import { useLocalSearchParams } from "expo-router";
+import { Pressable, View, StyleSheet } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+
 
 export default function CameraScreen() {
   const params = useLocalSearchParams();
@@ -33,6 +35,13 @@ export default function CameraScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "black" }}>
+      <Pressable
+        onPress={() => router.back()}
+        style={styles.backButton}
+      >
+        <Ionicons name="arrow-back" size={28} color="white" />
+      </Pressable>
+
       <CameraView ref={cameraRef} style={{ flex: 1 }} facing="back" />
 
       <Pressable
@@ -50,3 +59,18 @@ export default function CameraScreen() {
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  backButton: {
+    position: "absolute",
+    top: 50,
+    left: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "rgba(0,0,0,0.6)",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 100,
+  },
+});
