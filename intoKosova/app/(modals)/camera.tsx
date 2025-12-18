@@ -3,11 +3,10 @@ import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRef, useEffect, useState } from "react";
 import { useLocalSearchParams } from "expo-router";
-import { Pressable, View, StyleSheet, Image } from "react-native";
+import { Pressable, View, StyleSheet, Image, Text, Platform } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImageManipulator from "expo-image-manipulator";
 import * as FileSystem from "expo-file-system";
-import { Text } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   useSharedValue,
@@ -31,6 +30,7 @@ export default function CameraScreen() {
   const scale = useSharedValue(1);
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
+  const gesturesEnabled = Platform.OS !== "web" && isCropping;
 
  const panGesture = Gesture.Pan()
   .enabled(isCropping)
@@ -165,14 +165,29 @@ const applyCrop = async () => {
         <Ionicons name="arrow-back" size={28} color="white" />
       </Pressable>
 
-      <GestureDetector gesture={combinedGesture}>
-        <Animated.Image
+      {gesturesEnabled ? (
+        <GestureDetector gesture={combinedGesture}>
+          <Animated.Image
+            source={{ uri: photoUri }}
+            style={[styles.previewImage, imageStyle]}
+            resizeMode="contain"
+          />
+        </GestureDetector>
+      ) : (
+        <Image
           source={{ uri: photoUri }}
-          style={[styles.previewImage, imageStyle]}
+          style={styles.previewImage}
           resizeMode="contain"
         />
-      </GestureDetector>
+      )}
 
+      {Platform.OS === "web" && (
+        <View style={styles.webHint}>
+          <Text style={styles.webHintText}>
+            Advanced photo editing is available on mobile devices
+          </Text>
+        </View>
+      )}
 
       {/* TOP ACTIONS */}
       <View style={styles.topActions}>
@@ -184,13 +199,15 @@ const applyCrop = async () => {
           <Ionicons name="refresh-circle" size={30} color="white" />
         </Pressable>
 
-        <Pressable onPress={() => setIsCropping((prev) => !prev)}>
-          <Ionicons
-            name="crop"
-            size={26}
-            color={isCropping ? "yellow" : "white"}
-          />
-        </Pressable>
+        {Platform.OS !== "web" && (
+          <Pressable onPress={() => setIsCropping((prev) => !prev)}>
+            <Ionicons
+              name="crop"
+              size={26}
+              color={isCropping ? "yellow" : "white"}
+            />
+          </Pressable>
+        )}
       </View>
 
       {/* USE PHOTO */}
@@ -222,13 +239,21 @@ const applyCrop = async () => {
         <Ionicons name="camera-reverse" size={28} color="white" />
       </Pressable>
 
+     <View style={styles.webCameraWrapper}>
+        <CameraView
+          ref={cameraRef}
+          facing={facing}
+          style={styles.webCamera}
+        />
+      </View>
 
-      <CameraView
-        ref={cameraRef}
-        style={{ flex: 1 }}
-        facing={facing}
-      />
-
+    {Platform.OS === "web" && (
+    <View style={styles.webHint}>
+      <Text style={{ color: "white", fontSize: 12 }}>
+        Live preview may differ from final photo
+      </Text>
+    </View>
+  )}
 
       <Pressable
         onPress={takePhoto}
@@ -299,5 +324,47 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
   },
+
+  camera: {
+    width: "100%",
+    height: "100%",
+    ...(Platform.OS === "web" && {
+      aspectRatio: 3 / 4, // ose 9/16
+      maxWidth: 420,
+      alignSelf: "center",
+      flex: 1,
+    }),
+  },
+
+  webHint: {
+  position: "absolute",
+  bottom: 120,
+  alignSelf: "center",
+  backgroundColor: "rgba(0,0,0,0.6)",
+  paddingHorizontal: 14,
+  paddingVertical: 8,
+  borderRadius: 20,
+  zIndex: 50,
+},
+
+webHintText: {
+  color: "#fff",
+  fontSize: 13,
+  textAlign: "center",
+},
+
+
+webCameraWrapper: {
+  flex: 1,
+  backgroundColor: "black",
+  justifyContent: "center",
+  alignItems: "center",
+},
+
+webCamera: {
+  width: "100%",
+  aspectRatio: 3 / 4,
+},
+
 
 });
