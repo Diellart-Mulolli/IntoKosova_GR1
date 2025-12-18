@@ -8,6 +8,11 @@ import { Ionicons } from "@expo/vector-icons";
 import * as ImageManipulator from "expo-image-manipulator";
 import * as FileSystem from "expo-file-system";
 import { Text } from "react-native";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+} from "react-native-reanimated";
 
 
 export default function CameraScreen() {
@@ -19,9 +24,41 @@ export default function CameraScreen() {
   const cameraRef = useRef<CameraView | null>(null);
   const [facing, setFacing] = useState<"front" | "back">("back");
   const [photoUri, setPhotoUri] = useState<string | null>(null);
+  const [isCropping, setIsCropping] = useState(false);
   const [rotation, setRotation] = useState(0);
   const router = useRouter();
   
+  const scale = useSharedValue(1);
+  const translateX = useSharedValue(0);
+  const translateY = useSharedValue(0);
+
+ const panGesture = Gesture.Pan()
+  .enabled(isCropping)
+  .onUpdate((e) => {
+    translateX.value = e.translationX;
+    translateY.value = e.translationY;
+  });
+
+const pinchGesture = Gesture.Pinch()
+  .enabled(isCropping)
+  .onUpdate((e) => {
+    scale.value = Math.max(1, e.scale);
+  });
+
+
+const combinedGesture = Gesture.Simultaneous(
+  panGesture,
+  pinchGesture
+);
+
+const imageStyle = useAnimatedStyle(() => ({
+  transform: [
+    { translateX: translateX.value },
+    { translateY: translateY.value },
+    { scale: scale.value },
+  ],
+}));
+
 
   useEffect(() => {
     if (!permission?.granted) {
@@ -44,18 +81,26 @@ export default function CameraScreen() {
   setFacing((prev) => (prev === "back" ? "front" : "back"));
   };
 
-  const rotatePhoto = async () => {
+ const rotatePhoto = async () => {
   if (!photoUri) return;
 
   const result = await ImageManipulator.manipulateAsync(
     photoUri,
     [{ rotate: 90 }],
-    { compress: 0.9, format: ImageManipulator.SaveFormat.JPEG }
+    {
+      compress: 0.9,
+      format: ImageManipulator.SaveFormat.JPEG,
+    }
   );
 
+  // RESET gestures pas rotate
+  scale.value = 1;
+  translateX.value = 0;
+  translateY.value = 0;
+
   setPhotoUri(result.uri);
-  setRotation((prev) => prev + 90);
 };
+
 
 const cropPhoto = async () => {
   if (!photoUri) return;
@@ -87,6 +132,28 @@ const cropPhoto = async () => {
   setPhotoUri(result.uri);
 };
 
+const applyCrop = async () => {
+  if (!photoUri) return;
+
+  const result = await ImageManipulator.manipulateAsync(
+    photoUri,
+    [
+      {
+        crop: {
+          originX: 0,
+          originY: 0,
+          width: 1000,
+          height: 1000,
+        },
+      },
+    ],
+    { compress: 0.9, format: ImageManipulator.SaveFormat.JPEG }
+  );
+
+  setPhotoUri(result.uri);
+  setIsCropping(false);
+};
+
 
   if (photoUri) {
   return (
@@ -98,7 +165,14 @@ const cropPhoto = async () => {
         <Ionicons name="arrow-back" size={28} color="white" />
       </Pressable>
 
-      <Image source={{ uri: photoUri }} style={{ flex: 1 }} resizeMode="cover" />
+      <GestureDetector gesture={combinedGesture}>
+        <Animated.Image
+          source={{ uri: photoUri }}
+          style={[styles.previewImage, imageStyle]}
+          resizeMode="contain"
+        />
+      </GestureDetector>
+
 
       {/* TOP ACTIONS */}
       <View style={styles.topActions}>
@@ -110,8 +184,12 @@ const cropPhoto = async () => {
           <Ionicons name="refresh-circle" size={30} color="white" />
         </Pressable>
 
-        <Pressable onPress={cropPhoto}>
-          <Ionicons name="crop" size={26} color="white" />
+        <Pressable onPress={() => setIsCropping((prev) => !prev)}>
+          <Ionicons
+            name="crop"
+            size={26}
+            color={isCropping ? "yellow" : "white"}
+          />
         </Pressable>
       </View>
 
@@ -210,12 +288,16 @@ const styles = StyleSheet.create({
   topActions: {
   position: "absolute",
   top: 50,
-  left: 0,
-  right: 0,
+  left: 80, // LË VEND për back
+  right: 80, // LË VEND për flip
   flexDirection: "row",
   justifyContent: "space-around",
   zIndex: 100,
 },
 
+  previewImage: {
+    width: "100%",
+    height: "100%",
+  },
 
 });

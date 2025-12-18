@@ -6,11 +6,15 @@ import {
   DarkTheme,
   DefaultTheme,
 } from "@react-navigation/native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+
 
 export default function RootLayout() {
   return (
     <ThemeProvider>
-      <MainNavigation />
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <MainNavigation />
+      </GestureHandlerRootView>
     </ThemeProvider>
   );
 }
@@ -31,8 +35,10 @@ function MainNavigation() {
   };
 
   return (
+  <GestureHandlerRootView style={{ flex: 1 }}>
     <NavigationThemeProvider value={navigationTheme}>
       <Stack screenOptions={{ headerShown: false }} />
     </NavigationThemeProvider>
+  </GestureHandlerRootView>
   );
 }
