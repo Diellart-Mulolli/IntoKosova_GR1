@@ -6,6 +6,7 @@ import { useLocalSearchParams } from "expo-router";
 import { Pressable, View, StyleSheet, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImageManipulator from "expo-image-manipulator";
+import * as FileSystem from "expo-file-system";
 import { Text } from "react-native";
 
 
@@ -59,27 +60,44 @@ export default function CameraScreen() {
 const cropPhoto = async () => {
   if (!photoUri) return;
 
+  const info = await ImageManipulator.manipulateAsync(
+    photoUri,
+    [],
+    { base64: false }
+  );
+
+  const size = Math.min(info.width, info.height);
+
+  const crop = {
+    originX: (info.width - size) / 2,
+    originY: (info.height - size) / 2,
+    width: size,
+    height: size,
+  };
+
   const result = await ImageManipulator.manipulateAsync(
     photoUri,
-    [
-      {
-        crop: {
-          originX: 0,
-          originY: 0,
-          width: 1000,
-          height: 1000,
-        },
-      },
-    ],
-    { compress: 0.9, format: ImageManipulator.SaveFormat.JPEG }
+    [{ crop }],
+    {
+      compress: 0.9,
+      format: ImageManipulator.SaveFormat.JPEG,
+    }
   );
 
   setPhotoUri(result.uri);
 };
 
+
   if (photoUri) {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "black" }}>
+      <Pressable
+        onPress={() => router.replace("/(tabs)/create")}
+        style={styles.backButton}
+      >
+        <Ionicons name="arrow-back" size={28} color="white" />
+      </Pressable>
+
       <Image source={{ uri: photoUri }} style={{ flex: 1 }} resizeMode="cover" />
 
       {/* TOP ACTIONS */}
