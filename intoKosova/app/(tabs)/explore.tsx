@@ -14,6 +14,8 @@ import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
 import { useRouter } from "expo-router";
 import { useThemeManager } from "@/contexts/ThemeContext";
 import CategoryCard from "@/components/category-card";
+import { FlatList } from "react-native";
+import { useCallback } from "react";
 
 // ----------------------------------------------------------------------
 // CATEGORY LIST (pa ndryshime!)
@@ -125,6 +127,53 @@ export const explorationCategories = [
     ],
   },
 ];
+
+// ----------------------------------------------------------------------
+//   MAIN COMPONENT
+// ----------------------------------------------------------------------
+export default function ExplorationScreen() {
+  const { colors } = useThemeManager();
+  const theme = useTheme();
+  const palette = theme.dark ? colors.dark : colors.light;
+  const styles = createStyles(palette);
+  const router = useRouter();
+
+  const renderCategory = useCallback(   //per optimizim
+  ({ item, index }) => (
+    <CategoryCard
+      cat={item}
+      index={index}
+      styles={styles}
+      palette={palette}
+    />
+  ),
+  [styles, palette]
+);
+
+  return (
+    <SafeAreaView style={styles.container} edges={["top"]}>
+      <Animated.View entering={FadeInUp.springify()} style={styles.header}>
+        <Text style={styles.headerTitle}>Explore Kosovo</Text>
+        <Text style={styles.headerSubtitle}>
+          Discover the hidden gems and rich culture of Kosovo through various
+          categories
+        </Text>
+      </Animated.View>
+      <FlatList                        // ne vend te ScrollView per optimizim
+        data={explorationCategories}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={renderCategory}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{
+        paddingHorizontal: 20,
+        paddingBottom: 120,
+        }}
+        initialNumToRender={4}
+        windowSize={5}
+      />
+    </SafeAreaView>
+  );
+}
 
 // ----------------------------------------------------------------------
 //  CREATE STYLES — identik si HomeScreen
@@ -261,65 +310,3 @@ const createStyles = (palette: any) =>
       opacity: 0.8,
     },
   });
-
-// ----------------------------------------------------------------------
-//   MAIN COMPONENT
-// ----------------------------------------------------------------------
-export default function ExplorationScreen() {
-  const { colors } = useThemeManager();
-  const theme = useTheme();
-  const palette = theme.dark ? colors.dark : colors.light;
-  const styles = createStyles(palette);
-  const router = useRouter();
-
-  return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
-      <Animated.View entering={FadeInUp.springify()} style={styles.header}>
-        <Text style={styles.headerTitle}>Explore Kosovo</Text>
-        <Text style={styles.headerSubtitle}>
-          Discover the hidden gems and rich culture of Kosovo through various
-          categories
-        </Text>
-      </Animated.View>
-
-      <ScrollView
-        style={styles.content}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 20 }}
-      >
-        <Animated.View
-          entering={FadeInUp.delay(200).springify()}
-          style={styles.statsContainer}
-        >
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>50+</Text>
-            <Text style={styles.statLabel}>Historical{"\n"}Sites</Text>
-          </View>
-
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>25+</Text>
-            <Text style={styles.statLabel}>Natural{"\n"}Wonders</Text>
-          </View>
-
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>100+</Text>
-            <Text style={styles.statLabel}>Cultural{"\n"}Experiences</Text>
-          </View>
-        </Animated.View>
-
-        <View style={styles.categoriesContainer}>
-         {explorationCategories.map((cat, index) => (
-            <CategoryCard
-              key={cat.id}
-              cat={cat}
-              index={index}
-              styles={styles}
-              palette={palette}
-            />
-          ))}
-
-        </View>
-      </ScrollView>
-    </SafeAreaView>
-  );
-}
