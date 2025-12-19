@@ -112,7 +112,10 @@ export default function SettingsScreen() {
           window.alert("Progress has been reset.");
           window.location.reload();
         } else {
-          Alert.alert("Success", "Your progress has been deleted successfully.");
+          Alert.alert(
+            "Success",
+            "Your progress has been deleted successfully."
+          );
         }
       } catch (e) {
         console.error("Error clearing AsyncStorage:", e);
@@ -318,10 +321,15 @@ export default function SettingsScreen() {
                 </ThemedText>
 
                 <ThemedText
-                  style={{ color: colors.text, marginVertical: 10, lineHeight: 22 }}
+                  style={{
+                    color: colors.text,
+                    marginVertical: 10,
+                    lineHeight: 22,
+                  }}
                 >
-                  This application showcases the beauty of Kosovo through photos,
-                  categories, and user collections. Built with ❤️ by your developer.
+                  This application showcases the beauty of Kosovo through
+                  photos, categories, and user collections. Built with ❤️ by
+                  your developer.
                 </ThemedText>
 
                 <TouchableOpacity

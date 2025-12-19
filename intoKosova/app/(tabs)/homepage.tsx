@@ -476,7 +476,8 @@ export default function HomeScreen() {
     fetchWeather(false);
   }, []);
 
-  const onRefresh = useCallback(async () => {    //optimizimi i refresh
+  const onRefresh = useCallback(async () => {
+    //optimizimi i refresh
     setRefreshing(true);
 
     spinValue.value = 0;
@@ -540,89 +541,88 @@ export default function HomeScreen() {
         </Text>
       </Animated.View>
 
-      <Animated.ScrollView
-        style={styles.content}
+      <Animated.FlatList
+        data={features}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={renderFeatureItem}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 20 }}
-        onScroll={(event) => {
-          const y = event.nativeEvent.contentOffset.y;
-          scrollY.value = y;
-
-          if (y < -60 && !refreshing) {
-            startPremiumSpinner();
-            onRefresh();
-          }
+        initialNumToRender={3}
+        windowSize={5}
+        removeClippedSubviews
+        contentContainerStyle={{
+          paddingHorizontal: 20,
+          paddingBottom: 100,
         }}
-        scrollEventThrottle={16}
-      >
-        {scrollY.value < -40 && (
-          <Animated.View
-            style={[
-              {
-                position: "absolute",
-                top: -80,
-                left: "50%",
-                transform: [{ translateX: -25 }],
-                width: 50,
-                height: 50,
-                justifyContent: "center",
-                alignItems: "center",
-              },
-            ]}
-          >
-            {/* Pulsimi */}
-            <Animated.View
-              style={[
-                {
-                  position: "absolute",
-                  width: 40,
-                  height: 40,
-                  borderRadius: 20,
-                  backgroundColor: "rgba(255,255,255,0.3)",
-                },
-                pulseStyle,
-              ]}
-            />
+        ListHeaderComponent={
+          <>
+            {/* WEATHER SUCCESS */}
+            {weather && !weatherError && (
+              <Animated.View entering={FadeInUp.delay(120).springify()}>
+                <LinearGradient
+                  colors={getWeatherGradient(weather.condition)}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={{
+                    borderRadius: 14,
+                    padding: 14,
+                    marginBottom: 20,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    ...Platform.select({
+                      ios: {
+                        shadowColor: palette.primary,
+                        shadowOffset: { width: 0, height: 6 },
+                        shadowOpacity: 0.15,
+                        shadowRadius: 12,
+                      },
+                      android: { elevation: 6 },
+                    }),
+                  }}
+                >
+                  <View>
+                    <Text
+                      style={{ fontSize: 18, fontWeight: "600", color: "#fff" }}
+                    >
+                      {weather.city}
+                    </Text>
+                    <Text style={{ fontSize: 14, color: "#f0f0f0" }}>
+                      {weather.desc}
+                    </Text>
+                  </View>
 
-            {/* Rrotullimi */}
-            <Animated.View
-              style={[
-                {
-                  width: 50,
-                  height: 50,
-                  justifyContent: "center",
-                  alignItems: "center",
-                },
-                rotateStyle,
-              ]}
-            >
-              <View
-                style={{
-                  width: 10,
-                  height: 10,
-                  backgroundColor: "#fff",
-                  borderRadius: 5,
-                }}
-              />
-            </Animated.View>
-          </Animated.View>
-        )}
+                  <View style={{ alignItems: "center" }}>
+                    <Image
+                      source={weatherIcons[weather.icon] || weatherIcons["01d"]}
+                      style={{ width: 60, height: 60 }}
+                      resizeMode="contain"
+                    />
 
-        {/* WEATHER */}
-        {/* WEATHER SUCCESS */}
-        {weather && !weatherError && (
-          <Animated.View entering={FadeInUp.delay(120).springify()}>
-            <LinearGradient
-              colors={getWeatherGradient(weather.condition)}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
+                    <Text
+                      style={{ fontSize: 20, fontWeight: "700", color: "#fff" }}
+                    >
+                      {weather.temp}°C
+                    </Text>
+                  </View>
+                </LinearGradient>
+              </Animated.View>
+            )}
+
+            {/* WEATHER ERROR */}
+            {weatherError && (
+              <WeatherErrorCard palette={palette} weatherError={weatherError} />
+            )}
+
+            {/* STATS */}
+            <Animated.View
+              entering={FadeInUp.delay(200).springify()}
               style={{
-                borderRadius: 14,
-                padding: 14,
-                marginBottom: 20,
                 flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
+                justifyContent: "space-around",
+                marginBottom: 24,
+                paddingVertical: 16,
+                backgroundColor: palette.card,
+                borderRadius: 16,
                 ...Platform.select({
                   ios: {
                     shadowColor: palette.primary,
@@ -634,79 +634,24 @@ export default function HomeScreen() {
                 }),
               }}
             >
-              <View>
-                <Text
-                  style={{ fontSize: 18, fontWeight: "600", color: "#fff" }}
-                >
-                  {weather.city}
-                </Text>
-                <Text style={{ fontSize: 14, color: "#f0f0f0" }}>
-                  {weather.desc}
-                </Text>
-              </View>
+              {stats.map((stat, index) => (
+                <View key={index} style={styles.statItem}>
+                  <View style={styles.statIcon}>
+                    <IconSymbol
+                      name={stat.icon}
+                      size={20}
+                      color={palette.primary}
+                    />
+                  </View>
 
-              <View style={{ alignItems: "center" }}>
-                <Image
-                  source={weatherIcons[weather.icon] || weatherIcons["01d"]}
-                  style={{ width: 60, height: 60 }}
-                  resizeMode="contain"
-                />
-
-                <Text
-                  style={{ fontSize: 20, fontWeight: "700", color: "#fff" }}
-                >
-                  {weather.temp}°C
-                </Text>
-              </View>
-            </LinearGradient>
-          </Animated.View>
-        )}
-
-        {/* WEATHER ERROR */}
-        {weatherError && (
-          <WeatherErrorCard palette={palette} weatherError={weatherError} /> //nuk renderohet kot sikur pa react.memo
-        )}
-
-        {/* STATISTICS */}
-        <Animated.View
-          entering={FadeInUp.delay(200).springify()}
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-around",
-            marginBottom: 24,
-            paddingVertical: 16,
-            backgroundColor: colors.card,
-            borderRadius: 16,
-          }}
-        >
-          {stats.map((stat, index) => (
-            <View key={index} style={styles.statItem}>
-              <View style={styles.statIcon}>
-                <IconSymbol
-                  name={stat.icon}
-                  size={20}
-                  color={palette.primary}
-                />
-              </View>
-
-              <Text style={styles.statValue}>{stat.value}</Text>
-              <Text style={styles.statLabel}>{stat.label}</Text>
-            </View>
-          ))}
-        </Animated.View>
-
-        {/* FEATURES */}
-        <FlatList
-          data={features}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={renderFeatureItem}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.featuresContainer}
-          initialNumToRender={3}
-          windowSize={5}
-          removeClippedSubviews
-        />
-      </Animated.ScrollView>
+                  <Text style={styles.statValue}>{stat.value}</Text>
+                  <Text style={styles.statLabel}>{stat.label}</Text>
+                </View>
+              ))}
+            </Animated.View>
+          </>
+        }
+      />
     </SafeAreaView>
   );
 }
