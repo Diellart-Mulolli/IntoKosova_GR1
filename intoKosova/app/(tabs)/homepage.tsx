@@ -15,18 +15,20 @@ import {
 } from "react-native";
 import { GlassView } from "expo-glass-effect";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Animated, { 
+import Animated, {
   FadeInDown,
   FadeInUp,
   useSharedValue,
   useAnimatedStyle,
   withRepeat,
-  withTiming
+  withTiming,
 } from "react-native-reanimated";
+import { FlatList } from "react-native";
+import { useCallback, useMemo } from "react";
 
 import * as Location from "expo-location";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { LinearGradient } from "expo-linear-gradient"; 
+import { LinearGradient } from "expo-linear-gradient";
 // ------------------------------------
 // FEATURE LIST
 // ------------------------------------
@@ -43,7 +45,6 @@ const fetchWithTimeout = (url: string, options: any = {}, timeout = 3000) => {
 
 // Network check
 import NetInfo from "@react-native-community/netinfo";
-
 
 const weatherIcons: any = {
   "01d": require("@/assets/weather/sun.png"),
@@ -111,7 +112,6 @@ const errorMessages = {
 const getWeatherGradient = (condition: string) => {
   return weatherGradients[condition] || ["#4e54c8", "#8f94fb"]; // default purple gradient
 };
-
 
 import { useThemeManager } from "../../contexts/ThemeContext";
 
@@ -245,7 +245,11 @@ const createStyles = (palette: any) =>
       borderLeftWidth: 4,
     },
 
-    featureHeader: { flexDirection: "row", alignItems: "center", marginBottom: 12 },
+    featureHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: 12,
+    },
 
     featureIcon: {
       marginRight: 16,
@@ -268,7 +272,6 @@ const createStyles = (palette: any) =>
     },
   });
 
-  
 // ------------------------------------
 // MAIN SCREEN
 // ------------------------------------
@@ -277,262 +280,253 @@ export default function HomeScreen() {
   const theme = useTheme();
   const palette = theme.dark ? colors.dark : colors.light;
 
-  const styles = createStyles(palette);
+  const styles = useMemo(() => createStyles(palette), [palette]);
 
   const [weather, setWeather] = useState<any>(null);
   const [refreshing, setRefreshing] = useState(false);
-  const [weatherError, setWeatherError] = useState<null | "location" | "network" | "api" | "unknown">(null);
+  const [weatherError, setWeatherError] = useState<
+    null | "location" | "network" | "api" | "unknown"
+  >(null);
   const [pullY, setPullY] = useState(0);
   const scrollY = useSharedValue(0);
 
-const spinValue = useSharedValue(0);
-const pulseValue = useSharedValue(1);
+  const spinValue = useSharedValue(0);
+  const pulseValue = useSharedValue(1);
 
-const rotateStyle = useAnimatedStyle(() => {
-  return {
-    transform: [
-      {
-        rotate: `${spinValue.value * 360}deg`
-      }
-    ]
+  const rotateStyle = useAnimatedStyle(() => {
+    return {
+      transform: [
+        {
+          rotate: `${spinValue.value * 360}deg`,
+        },
+      ],
+    };
+  });
+
+  // Pulsimi i rrethit të madh
+  const pulseStyle = useAnimatedStyle(() => {
+    return {
+      transform: [
+        {
+          scale: pulseValue.value,
+        },
+      ],
+      opacity: pulseValue.value,
+    };
+  });
+
+  const startPremiumSpinner = () => {
+    // Rrotullim i pafund
+    spinValue.value = withRepeat(withTiming(1, { duration: 900 }), -1, false);
+
+    // Pulsim i butë
+    pulseValue.value = withRepeat(withTiming(0.4, { duration: 700 }), -1, true);
   };
-});
 
-// Pulsimi i rrethit të madh
-const pulseStyle = useAnimatedStyle(() => {
-  return {
-    transform: [
-      {
-        scale: pulseValue.value
-      }
-    ],
-    opacity: pulseValue.value
-  };
-});
-
-const startPremiumSpinner = () => {
-  // Rrotullim i pafund
-  spinValue.value = withRepeat(
-    withTiming(1, { duration: 900 }),
-    -1,
-    false
-  );
-
-  // Pulsim i butë
-  pulseValue.value = withRepeat(
-    withTiming(0.4, { duration: 700 }),
-    -1,
-    true
-  );
-};
-
-
-const fetchWeather = async (forceRefresh = false) => {
-  try {
-    if (!forceRefresh) {
-      const cached = await AsyncStorage.getItem(WEATHER_CACHE_KEY);
-      if (cached) {
-        const cachedData = JSON.parse(cached);
-        const now = Date.now();
-        if (now - cachedData.timestamp < CACHE_DURATION) {
-          setWeather(cachedData.weather);
-          setWeatherError(null);
-          return;
+  const fetchWeather = async (forceRefresh = false) => {
+    try {
+      if (!forceRefresh) {
+        const cached = await AsyncStorage.getItem(WEATHER_CACHE_KEY);
+        if (cached) {
+          const cachedData = JSON.parse(cached);
+          const now = Date.now();
+          if (now - cachedData.timestamp < CACHE_DURATION) {
+            setWeather(cachedData.weather);
+            setWeatherError(null);
+            return;
+          }
         }
       }
-    }
 
-    const { status } = await Location.requestForegroundPermissionsAsync();
-    if (status !== "granted") {
-      setWeather(null);
-      setWeatherError("location");
-      return;
-    }
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        setWeather(null);
+        setWeatherError("location");
+        return;
+      }
 
-    const loc = await Location.getCurrentPositionAsync({});
-    const { latitude: lat, longitude: lon } = loc.coords;
+      const loc = await Location.getCurrentPositionAsync({});
+      const { latitude: lat, longitude: lon } = loc.coords;
 
-    const apiKey = "6068fce306e355cd321c53a65029295b";
+      const apiKey = "6068fce306e355cd321c53a65029295b";
 
-    // Kontrollo rrjetin — vetem NJE HERË
-    const net = await NetInfo.fetch();
-    if (!net.isConnected) {
-      setWeather(null);
-      setWeatherError("network");
-      return;
-    }
+      // Kontrollo rrjetin — vetem NJE HERË
+      const net = await NetInfo.fetch();
+      if (!net.isConnected) {
+        setWeather(null);
+        setWeatherError("network");
+        return;
+      }
 
-    // Fetch me timeout
-    let res;
-    try {
-      res = await fetchWithTimeout(
-        `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${apiKey}`,
-        {},
-        3000
+      // Fetch me timeout
+      let res;
+      try {
+        res = await fetchWithTimeout(
+          `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${apiKey}`,
+          {},
+          3000
+        );
+      } catch (err: any) {
+        setWeather(null);
+        setWeatherError(err.message === "timeout" ? "network" : "unknown");
+        return;
+      }
+
+      if (!res.ok) {
+        setWeather(null);
+        setWeatherError("api");
+        return;
+      }
+
+      const data = await res.json();
+
+      const parsedWeather = {
+        temp: Math.round(data.main.temp),
+        city: data.name,
+        desc: data.weather[0].description,
+        icon: data.weather[0].icon,
+        condition: data.weather[0].main,
+      };
+
+      await AsyncStorage.setItem(
+        WEATHER_CACHE_KEY,
+        JSON.stringify({ timestamp: Date.now(), weather: parsedWeather })
       );
-    } catch (err: any) {
+
+      setWeather(parsedWeather);
+      setWeatherError(null);
+    } catch (e) {
+      console.log("Weather unknown error:", e);
       setWeather(null);
-      setWeatherError(err.message === "timeout" ? "network" : "unknown");
-      return;
+      setWeatherError("unknown");
     }
-
-    if (!res.ok) {
-      setWeather(null);
-      setWeatherError("api");
-      return;
-    }
-
-    const data = await res.json();
-
-    const parsedWeather = {
-      temp: Math.round(data.main.temp),
-      city: data.name,
-      desc: data.weather[0].description,
-      icon: data.weather[0].icon,
-      condition: data.weather[0].main,
-    };
-
-    await AsyncStorage.setItem(
-      WEATHER_CACHE_KEY,
-      JSON.stringify({ timestamp: Date.now(), weather: parsedWeather })
-    );
-
-    setWeather(parsedWeather);
-    setWeatherError(null);
-
-  } catch (e) {
-    console.log("Weather unknown error:", e);
-    setWeather(null);
-    setWeatherError("unknown");
-  }
-};
-
-
-
-
-const WeatherErrorCard = () => {
-  const messages: any = {
-    location: {
-      icon: "📍",
-      title: "Location Disabled",
-      desc: "Enable location services to get weather updates.",
-    },
-    network: {
-      icon: "🌐",
-      title: "No Internet",
-      desc: "Please connect to the internet.",
-    },
-    api: {
-      icon: "🔑",
-      title: "API Error",
-      desc: "Weather service configuration error.",
-    },
-    unknown: {
-      icon: "❓",
-      title: "Unknown Error",
-      desc: "Something went wrong.",
-    },
   };
 
-  const msg = messages[weatherError ?? "unknown"];
+  const WeatherErrorCard = React.memo(
+    //React.memo per optimization
+    ({ palette, weatherError }: { palette: any; weatherError: any }) => {
+      const messages: any = {
+        location: {
+          icon: "📍",
+          title: "Location Disabled",
+          desc: "Enable location services to get weather updates.",
+        },
+        network: {
+          icon: "🌐",
+          title: "No Internet",
+          desc: "Please connect to the internet.",
+        },
+        api: {
+          icon: "🔑",
+          title: "API Error",
+          desc: "Weather service configuration error.",
+        },
+        unknown: {
+          icon: "❓",
+          title: "Unknown Error",
+          desc: "Something went wrong.",
+        },
+      };
 
-  return (
-    <Animated.View
-      entering={FadeInUp.springify().duration(600)}
-      style={{
-        backgroundColor: palette.card,
-        borderRadius: 14,
-        padding: 18,
-        marginBottom: 20,
-        justifyContent: "center",
-        alignItems: "center",
-        ...Platform.select({
-          ios: {
-            shadowColor: palette.primary,
-            shadowOffset: { width: 0, height: 6 },
-            shadowOpacity: 0.15,
-            shadowRadius: 12,
-          },
-          android: { elevation: 6 },
-        }),
-      }}
-    >
-      <Text style={{ fontSize: 42, marginBottom: 8 }}>{msg.icon}</Text>
-      <Text
-        style={{
-          fontSize: 18,
-          fontWeight: "700",
-          color: palette.text,
-          marginBottom: 4,
-        }}
-      >
-        {msg.title}
-      </Text>
-      <Text style={{ fontSize: 14, color: palette.textSecondary }}>
-        {msg.desc}
-      </Text>
-    </Animated.View>
-  );
-};
+      const msg = messages[weatherError ?? "unknown"];
 
- useEffect(() => {
-  fetchWeather(false); 
-}, []);
-
-
- const onRefresh = async () => {
-  setRefreshing(true);
-
-  spinValue.value = 0;
-  pulseValue.value = 1;
-  startPremiumSpinner();
-
-  await fetchWeather(true);
-
-  setRefreshing(false);
-};
-
-  const renderFeatureCard = (feature: typeof features[0], index: number) => {
-    const featureColor = palette[feature.colorKey];
-
-    return (
-      <Animated.View
-        key={feature.id}
-        entering={FadeInDown.delay(index * 100).springify()}
-      >
-        <Pressable
-          style={styles.featureCard}
-          onPress={() => console.log(`Feature pressed: ${feature.title}`)}
-          android_ripple={{ color: palette.lightBlue }}
+      return (
+        <Animated.View
+          entering={FadeInUp.springify().duration(600)}
+          style={{
+            backgroundColor: palette.card,
+            borderRadius: 14,
+            padding: 18,
+            marginBottom: 20,
+            justifyContent: "center",
+            alignItems: "center",
+            ...Platform.select({
+              ios: {
+                shadowColor: palette.primary,
+                shadowOffset: { width: 0, height: 6 },
+                shadowOpacity: 0.15,
+                shadowRadius: 12,
+              },
+              android: { elevation: 6 },
+            }),
+          }}
         >
-          <View
-            style={[
-              styles.featureContent,
-              { borderLeftColor: featureColor },
-            ]}
-          >
-            <View style={styles.featureHeader}>
-              <View
-                style={[
-                  styles.featureIcon,
-                  { backgroundColor: featureColor + "33" },
-                ]}
-              >
-                <IconSymbol name={feature.icon} size={28} color={featureColor} />
-              </View>
+          <Text style={{ fontSize: 42, marginBottom: 8 }}>{msg.icon}</Text>
 
-              <View style={styles.featureTextContainer}>
-                <Text style={styles.featureTitle}>{feature.title}</Text>
-                <Text style={styles.featureDescription}>
-                  {feature.description}
-                </Text>
+          <Text
+            style={{
+              fontSize: 18,
+              fontWeight: "700",
+              color: palette.text,
+              marginBottom: 4,
+            }}
+          >
+            {msg.title}
+          </Text>
+
+          <Text style={{ fontSize: 14, color: palette.textSecondary }}>
+            {msg.desc}
+          </Text>
+        </Animated.View>
+      );
+    }
+  );
+
+  useEffect(() => {
+    fetchWeather(false);
+  }, []);
+
+  const onRefresh = useCallback(async () => {    //optimizimi i refresh
+    setRefreshing(true);
+
+    spinValue.value = 0;
+    pulseValue.value = 1;
+    startPremiumSpinner();
+
+    await fetchWeather(true);
+
+    setRefreshing(false);
+  }, []);
+
+  const renderFeatureItem = useCallback(
+    //per optimizim
+    ({ item, index }: { item: (typeof features)[0]; index: number }) => {
+      const featureColor = palette[item.colorKey];
+
+      return (
+        <Animated.View entering={FadeInDown.delay(index * 100).springify()}>
+          <Pressable
+            style={styles.featureCard}
+            onPress={() => console.log(`Feature pressed: ${item.title}`)}
+            android_ripple={{ color: palette.lightBlue }}
+          >
+            <View
+              style={[styles.featureContent, { borderLeftColor: featureColor }]}
+            >
+              <View style={styles.featureHeader}>
+                <View
+                  style={[
+                    styles.featureIcon,
+                    { backgroundColor: featureColor + "33" },
+                  ]}
+                >
+                  <IconSymbol name={item.icon} size={28} color={featureColor} />
+                </View>
+
+                <View>
+                  <Text style={styles.featureTitle}>{item.title}</Text>
+                  <Text style={styles.featureDescription}>
+                    {item.description}
+                  </Text>
+                </View>
               </View>
             </View>
-          </View>
-        </Pressable>
-      </Animated.View>
-    );
-  };
+          </Pressable>
+        </Animated.View>
+      );
+    },
+    [palette, styles]
+  );
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
@@ -541,214 +535,177 @@ const WeatherErrorCard = () => {
       <Animated.View entering={FadeInUp.springify()} style={styles.header}>
         <Text style={styles.titleText}>intoKosova</Text>
         <Text style={styles.subtitleText}>
-          Discover the heart of the Balkans through its rich history, stunning landscapes, and vibrant culture
+          Discover the heart of the Balkans through its rich history, stunning
+          landscapes, and vibrant culture
         </Text>
       </Animated.View>
 
-  <Animated.ScrollView
-  style={styles.content}
-  showsVerticalScrollIndicator={false}
-  contentContainerStyle={{ paddingBottom: 20 }}
-  onScroll={(event) => {
-  const y = event.nativeEvent.contentOffset.y;
-  scrollY.value = y;
+      <Animated.ScrollView
+        style={styles.content}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 20 }}
+        onScroll={(event) => {
+          const y = event.nativeEvent.contentOffset.y;
+          scrollY.value = y;
 
-  if (y < -60 && !refreshing) {
-    startPremiumSpinner();
-    onRefresh();
-  }
-}}
-
-  scrollEventThrottle={16}
-
->
-
-
-  {scrollY.value < -40 && (
-  <Animated.View
-    style={[
-      {
-        position: "absolute",
-        top: -80,
-        left: "50%",
-        transform: [{ translateX: -25 }],
-        width: 50,
-        height: 50,
-        justifyContent: "center",
-        alignItems: "center",
-      },
-    ]}
-  >
-    {/* Pulsimi */}
-    <Animated.View
-      style={[
-        {
-          position: "absolute",
-          width: 40,
-          height: 40,
-          borderRadius: 20,
-          backgroundColor: "rgba(255,255,255,0.3)",
-        },
-        pulseStyle,
-      ]}
-    />
-
-    {/* Rrotullimi */}
-    <Animated.View
-      style={[
-        {
-          width: 50,
-          height: 50,
-          justifyContent: "center",
-          alignItems: "center",
-        },
-        rotateStyle,
-      ]}
-    >
-      <View
-        style={{
-          width: 10,
-          height: 10,
-          backgroundColor: "#fff",
-          borderRadius: 5,
+          if (y < -60 && !refreshing) {
+            startPremiumSpinner();
+            onRefresh();
+          }
         }}
-      />
-    </Animated.View>
-  </Animated.View>
-)}
+        scrollEventThrottle={16}
+      >
+        {scrollY.value < -40 && (
+          <Animated.View
+            style={[
+              {
+                position: "absolute",
+                top: -80,
+                left: "50%",
+                transform: [{ translateX: -25 }],
+                width: 50,
+                height: 50,
+                justifyContent: "center",
+                alignItems: "center",
+              },
+            ]}
+          >
+            {/* Pulsimi */}
+            <Animated.View
+              style={[
+                {
+                  position: "absolute",
+                  width: 40,
+                  height: 40,
+                  borderRadius: 20,
+                  backgroundColor: "rgba(255,255,255,0.3)",
+                },
+                pulseStyle,
+              ]}
+            />
 
+            {/* Rrotullimi */}
+            <Animated.View
+              style={[
+                {
+                  width: 50,
+                  height: 50,
+                  justifyContent: "center",
+                  alignItems: "center",
+                },
+                rotateStyle,
+              ]}
+            >
+              <View
+                style={{
+                  width: 10,
+                  height: 10,
+                  backgroundColor: "#fff",
+                  borderRadius: 5,
+                }}
+              />
+            </Animated.View>
+          </Animated.View>
+        )}
 
         {/* WEATHER */}
         {/* WEATHER SUCCESS */}
-{weather && !weatherError && (
- <Animated.View entering={FadeInUp.delay(120).springify()}>
-  <LinearGradient
-    colors={getWeatherGradient(weather.condition)}
-    start={{ x: 0, y: 0 }}
-    end={{ x: 1, y: 1 }}
-    style={{
-      borderRadius: 14,
-      padding: 14,
-      marginBottom: 20,
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      ...Platform.select({
-        ios: {
-          shadowColor: palette.primary,
-          shadowOffset: { width: 0, height: 6 },
-          shadowOpacity: 0.15,
-          shadowRadius: 12,
-        },
-        android: { elevation: 6 },
-      }),
-    }}
-  >
-    <View>
-      <Text style={{ fontSize: 18, fontWeight: "600", color: "#fff" }}>
-        {weather.city}
-      </Text>
-      <Text style={{ fontSize: 14, color: "#f0f0f0" }}>
-        {weather.desc}
-      </Text>
-    </View>
+        {weather && !weatherError && (
+          <Animated.View entering={FadeInUp.delay(120).springify()}>
+            <LinearGradient
+              colors={getWeatherGradient(weather.condition)}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={{
+                borderRadius: 14,
+                padding: 14,
+                marginBottom: 20,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                ...Platform.select({
+                  ios: {
+                    shadowColor: palette.primary,
+                    shadowOffset: { width: 0, height: 6 },
+                    shadowOpacity: 0.15,
+                    shadowRadius: 12,
+                  },
+                  android: { elevation: 6 },
+                }),
+              }}
+            >
+              <View>
+                <Text
+                  style={{ fontSize: 18, fontWeight: "600", color: "#fff" }}
+                >
+                  {weather.city}
+                </Text>
+                <Text style={{ fontSize: 14, color: "#f0f0f0" }}>
+                  {weather.desc}
+                </Text>
+              </View>
 
-    <View style={{ alignItems: "center" }}>
-      <Image
-        source={weatherIcons[weather.icon] || weatherIcons["01d"]}
-        style={{ width: 60, height: 60 }}
-        resizeMode="contain"
-      />
+              <View style={{ alignItems: "center" }}>
+                <Image
+                  source={weatherIcons[weather.icon] || weatherIcons["01d"]}
+                  style={{ width: 60, height: 60 }}
+                  resizeMode="contain"
+                />
 
-      <Text style={{ fontSize: 20, fontWeight: "700", color: "#fff" }}>
-        {weather.temp}°C
-      </Text>
-    </View>
-  </LinearGradient>
-</Animated.View>
+                <Text
+                  style={{ fontSize: 20, fontWeight: "700", color: "#fff" }}
+                >
+                  {weather.temp}°C
+                </Text>
+              </View>
+            </LinearGradient>
+          </Animated.View>
+        )}
 
-)}
-
-{/* WEATHER ERROR */}
-{weatherError && (
-  <Animated.View
-    entering={FadeInUp.delay(120).springify()}
-    style={{
-      backgroundColor: palette.card,
-      borderRadius: 14,
-      padding: 16,
-      marginBottom: 20,
-      alignItems: "center",
-      justifyContent: "center",
-      ...Platform.select({
-        ios: {
-          shadowColor: palette.primary,
-          shadowOffset: { width: 0, height: 6 },
-          shadowOpacity: 0.15,
-          shadowRadius: 12,
-        },
-        android: { elevation: 6 },
-      }),
-    }}
-  >
-    <Text style={{ fontSize: 42 }}>{errorMessages[weatherError].icon}</Text>
-
-    <Text style={{ fontSize: 16, fontWeight: "600", color: palette.text }}>
-      {errorMessages[weatherError].title}
-    </Text>
-
-    <Text
-      style={{
-        fontSize: 13,
-        color: palette.textSecondary,
-        marginTop: 4,
-        textAlign: "center",
-      }}
-    >
-      {errorMessages[weatherError].desc}
-    </Text>
-
-    <Text
-      style={{
-        marginTop: 6,
-        fontSize: 12,
-        color: palette.primary,
-      }}
-    >
-      Pull down to retry
-    </Text>
-  </Animated.View>
-)}
+        {/* WEATHER ERROR */}
+        {weatherError && (
+          <WeatherErrorCard palette={palette} weatherError={weatherError} /> //nuk renderohet kot sikur pa react.memo
+        )}
 
         {/* STATISTICS */}
         <Animated.View
-  entering={FadeInUp.delay(200).springify()}
-  style={{
-    flexDirection: "row",
-    justifyContent: "space-around",
-    marginBottom: 24,
-    paddingVertical: 16,
-    backgroundColor: colors.card,
-    borderRadius: 16,
-  }}
->
-  {stats.map((stat, index) => (
-    <View key={index} style={styles.statItem}>
-      <View style={styles.statIcon}>
-        <IconSymbol name={stat.icon} size={20} color={palette.primary} />
-      </View>
+          entering={FadeInUp.delay(200).springify()}
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-around",
+            marginBottom: 24,
+            paddingVertical: 16,
+            backgroundColor: colors.card,
+            borderRadius: 16,
+          }}
+        >
+          {stats.map((stat, index) => (
+            <View key={index} style={styles.statItem}>
+              <View style={styles.statIcon}>
+                <IconSymbol
+                  name={stat.icon}
+                  size={20}
+                  color={palette.primary}
+                />
+              </View>
 
-      <Text style={styles.statValue}>{stat.value}</Text>
-      <Text style={styles.statLabel}>{stat.label}</Text>
-    </View>
-  ))}
-</Animated.View>
-
+              <Text style={styles.statValue}>{stat.value}</Text>
+              <Text style={styles.statLabel}>{stat.label}</Text>
+            </View>
+          ))}
+        </Animated.View>
 
         {/* FEATURES */}
-        <View style={styles.featuresContainer}>
-          {features.map((feature, index) => renderFeatureCard(feature, index))}
-        </View>
+        <FlatList
+          data={features}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={renderFeatureItem}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.featuresContainer}
+          initialNumToRender={3}
+          windowSize={5}
+          removeClippedSubviews
+        />
       </Animated.ScrollView>
     </SafeAreaView>
   );
