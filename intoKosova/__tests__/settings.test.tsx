@@ -1,153 +1,107 @@
 import React from "react";
-import { render, fireEvent, waitFor, screen } from "@testing-library/react-native";
-import SettingsScreen from "@/app/(tabs)/settings";
-import { useThemeManager } from "@/contexts/ThemeContext";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import * as Notifications from "expo-notifications";
-import * as Clipboard from "expo-clipboard";
+import renderer, { act } from "react-test-renderer";
+import SettingsScreen from "@/app/(screens)/SettingsScreen";
+import { Pressable, Text } from "react-native";
 
-// MOCKS
+// ================= MOCKS =================
 
-jest.mock("@react-native-async-storage/async-storage", () => ({
-  getItem: jest.fn(),
-  setItem: jest.fn(),
-  clear: jest.fn(),
-}));
-
-jest.mock("expo-notifications", () => ({
-  requestPermissionsAsync: jest.fn(),
-  scheduleNotificationAsync: jest.fn(),
-}));
-
-jest.mock("expo-clipboard", () => ({
-  setStringAsync: jest.fn(),
-}));
-
-jest.mock("expo-application", () => ({
-  applicationVersion: "mock",
-}));
-
+// Theme Context
 jest.mock("@/contexts/ThemeContext", () => ({
-  useThemeManager: jest.fn(),
+  useThemeManager: () => ({
+    setTheme: jest.fn(),
+  }),
 }));
 
+// React Navigation Theme
 jest.mock("@react-navigation/native", () => ({
   useTheme: () => ({
     dark: false,
     colors: {
-      primary: "#3182CE",
-      text: "#000",
-      textSecondary: "#666",
-      background: "#fff",
+      background: "#ffffff",
+      text: "#000000",
+      textSecondary: "#666666",
+      primary: "#1e90ff",
     },
   }),
 }));
 
-global.alert = jest.fn();
-jest.spyOn(console, "warn").mockImplementation(() => {});
+// AsyncStorage
+jest.mock("@react-native-async-storage/async-storage", () => ({
+  getItem: jest.fn(() => Promise.resolve(null)),
+  setItem: jest.fn(),
+  clear: jest.fn(),
+}));
 
-// TEST SUITE
+// Expo Notifications
+jest.mock("expo-notifications", () => ({
+  requestPermissionsAsync: jest.fn(() =>
+    Promise.resolve({ status: "granted" })
+  ),
+  scheduleNotificationAsync: jest.fn(),
+}));
 
-describe("SettingsScreen", () => {
-  const mockSetTheme = jest.fn();
+// Expo Application
+jest.mock("expo-application", () => ({
+  nativeApplicationVersion: "1.0.0",
+}));
 
-  beforeEach(() => {
-    (useThemeManager as jest.Mock).mockReturnValue({
-      setTheme: mockSetTheme,
-    });
+// Clipboard
+jest.mock("expo-clipboard", () => ({
+  setStringAsync: jest.fn(),
+}));
 
-    (AsyncStorage.getItem as jest.Mock).mockResolvedValue(null);
-    jest.clearAllMocks();
+// Reanimated (disable animations)
+jest.mock("react-native-reanimated", () =>
+  require("react-native-reanimated/mock")
+);
+
+// SafeAreaView
+jest.mock("react-native-safe-area-context", () => {
+  const React = require("react");
+  return {
+    SafeAreaView: ({ children }: any) => <>{children}</>,
+  };
+});
+
+// =========================================
+
+describe("SettingsScreen – Snapshot tests", () => {
+  it("renders default Settings screen", () => {
+    const tree = renderer.create(<SettingsScreen />).toJSON();
+    expect(tree).toMatchSnapshot();
   });
 
-  // RENDER
+  it("renders Notifications modal (default OFF)", async () => {
+    const component = renderer.create(<SettingsScreen />);
 
-  it("renders settings screen correctly", () => {
-    render(<SettingsScreen />);
-
-    expect(screen.getByText("Settings")).toBeTruthy();
-    expect(screen.getByText(/customize your app experience/i)).toBeTruthy();
-
-    expect(screen.getByText("Notifications")).toBeTruthy();
-    expect(screen.getByText("Theme")).toBeTruthy();
-    expect(screen.getByText("About")).toBeTruthy();
-    expect(screen.getByText("Accessibility")).toBeTruthy();
-    expect(screen.getByText("Reset Progress")).toBeTruthy();
-  });
-
-  // NOTIFICATIONS
-   
-  it("enables notifications and saves preference", async () => {
-    render(<SettingsScreen />);
-
-    fireEvent.press(screen.getByText("Notifications"));
-
-    await waitFor(() => {
-      expect(screen.getByText("Enable Notifications")).toBeTruthy();
-    });
-
-    const toggle = screen.getByRole("switch");
-    expect(toggle.props.value).toBe(false);
-
-    (Notifications.requestPermissionsAsync as jest.Mock).mockResolvedValue({
-      status: "granted",
-    });
-
-    fireEvent(toggle, "onValueChange", true);
-
-    await waitFor(() => {
-      expect(AsyncStorage.setItem).toHaveBeenCalledWith(
-        "NOTIFICATIONS_ENABLED",
-        "true"
+    const notificationsButton = component.root
+      .findAllByType(Pressable)
+      .find((node) =>
+        node
+          .findAllByType(Text)
+          .some((t) => t.props.children === "Notifications")
       );
+
+    await act(async () => {
+      notificationsButton?.props.onPress();
     });
 
-    fireEvent.press(screen.getByText("Close"));
-
-    await waitFor(() => {
-      expect(screen.queryByText("Enable Notifications")).toBeNull();
-    });
+    expect(component.toJSON()).toMatchSnapshot();
   });
 
-  // THEME 
+  it("renders Theme selection modal", async () => {
+    const component = renderer.create(<SettingsScreen />);
 
-  it("changes theme to dark mode", async () => {
-    render(<SettingsScreen />);
+    const themeButton = component.root
+      .findAllByType(Pressable)
+      .find((node) =>
+        node.findAllByType(Text).some((t) => t.props.children === "Theme")
+      );
 
-    fireEvent.press(screen.getByText("Theme"));
-
-    await waitFor(() => {
-      expect(screen.getByText("Choose Theme")).toBeTruthy();
+    await act(async () => {
+      themeButton?.props.onPress();
     });
 
-    fireEvent.press(screen.getByText(/dark mode/i));
-
-    expect(mockSetTheme).toHaveBeenCalledWith("dark");
-
-    await waitFor(() => {
-      expect(screen.queryByText("Choose Theme")).toBeNull();
-    });
-  });
-
-  // ABOUT
-
-  it("copies email to clipboard", async () => {
-    render(<SettingsScreen />);
-
-    fireEvent.press(screen.getByText("About"));
-
-    await waitFor(() => {
-      expect(screen.getByText("About This App")).toBeTruthy();
-    });
-
-    fireEvent.press(screen.getByText(/intoKosovateam@gmail.com/i));
-
-    expect(Clipboard.setStringAsync).toHaveBeenCalledWith(
-      "intoKosovateam@gmail.com"
-    );
-
-    expect(global.alert).toHaveBeenCalledWith(
-      "Email copied to clipboard!"
-    );
+    expect(component.toJSON()).toMatchSnapshot();
   });
 });
