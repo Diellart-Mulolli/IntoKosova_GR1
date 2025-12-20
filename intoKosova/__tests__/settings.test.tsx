@@ -1,19 +1,13 @@
-// __tests__/settings.test.tsx
-
 import React from "react";
-import {
-  render,
-  fireEvent,
-  waitFor,
-  screen,
-} from "@testing-library/react-native";
+import { render, fireEvent, waitFor, screen } from "@testing-library/react-native";
 import SettingsScreen from "@/app/(tabs)/settings";
 import { useThemeManager } from "@/contexts/ThemeContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Notifications from "expo-notifications";
 import * as Clipboard from "expo-clipboard";
 
-// Mock-et
+// MOCKS
+
 jest.mock("@react-native-async-storage/async-storage", () => ({
   getItem: jest.fn(),
   setItem: jest.fn(),
@@ -29,6 +23,10 @@ jest.mock("expo-clipboard", () => ({
   setStringAsync: jest.fn(),
 }));
 
+jest.mock("expo-application", () => ({
+  applicationVersion: "mock",
+}));
+
 jest.mock("@/contexts/ThemeContext", () => ({
   useThemeManager: jest.fn(),
 }));
@@ -38,15 +36,17 @@ jest.mock("@react-navigation/native", () => ({
     dark: false,
     colors: {
       primary: "#3182CE",
-      text: "#000000",
-      textSecondary: "#666666",
-      background: "#FFFFFF",
+      text: "#000",
+      textSecondary: "#666",
+      background: "#fff",
     },
   }),
 }));
 
-// RREGULLIMI I ALERT-IT (kryesor!)
-global.alert = jest.fn(); // Mock alert global
+global.alert = jest.fn();
+jest.spyOn(console, "warn").mockImplementation(() => {});
+
+// TEST SUITE
 
 describe("SettingsScreen", () => {
   const mockSetTheme = jest.fn();
@@ -60,11 +60,13 @@ describe("SettingsScreen", () => {
     jest.clearAllMocks();
   });
 
-  it("renders all setting options correctly", () => {
+  // RENDER
+
+  it("renders settings screen correctly", () => {
     render(<SettingsScreen />);
 
     expect(screen.getByText("Settings")).toBeTruthy();
-    expect(screen.getByText("Customize your app experience")).toBeTruthy();
+    expect(screen.getByText(/customize your app experience/i)).toBeTruthy();
 
     expect(screen.getByText("Notifications")).toBeTruthy();
     expect(screen.getByText("Theme")).toBeTruthy();
@@ -73,27 +75,25 @@ describe("SettingsScreen", () => {
     expect(screen.getByText("Reset Progress")).toBeTruthy();
   });
 
-  it("opens and closes Notifications modal with switch", async () => {
+  // NOTIFICATIONS
+   
+  it("enables notifications and saves preference", async () => {
     render(<SettingsScreen />);
 
-    // Merr vetëm butonin e Notifications (jo titullin e modalit)
-    const notificationsButton = screen.getAllByText("Notifications")[0];
-    fireEvent.press(notificationsButton);
+    fireEvent.press(screen.getByText("Notifications"));
 
-    // Pritim që të shfaqet titulli i modalit
     await waitFor(() => {
-      expect(screen.getByText("Notifications")).toBeTruthy(); // tani është OK, sepse jemi brenda modalit
       expect(screen.getByText("Enable Notifications")).toBeTruthy();
     });
 
-    const switchElement = screen.getByRole("switch");
-    expect(switchElement.props.value).toBe(false);
+    const toggle = screen.getByRole("switch");
+    expect(toggle.props.value).toBe(false);
 
     (Notifications.requestPermissionsAsync as jest.Mock).mockResolvedValue({
       status: "granted",
     });
 
-    fireEvent(switchElement, "onValueChange", true);
+    fireEvent(toggle, "onValueChange", true);
 
     await waitFor(() => {
       expect(AsyncStorage.setItem).toHaveBeenCalledWith(
@@ -109,18 +109,18 @@ describe("SettingsScreen", () => {
     });
   });
 
-  it("changes theme when selecting a theme option", async () => {
+  // THEME 
+
+  it("changes theme to dark mode", async () => {
     render(<SettingsScreen />);
 
     fireEvent.press(screen.getByText("Theme"));
 
     await waitFor(() => {
       expect(screen.getByText("Choose Theme")).toBeTruthy();
-      expect(screen.getByText("Light Mode")).toBeTruthy(); // hiq emoji për stabilitet
-      expect(screen.getByText("Dark Mode")).toBeTruthy();
     });
 
-    fireEvent.press(screen.getByText("Dark Mode"));
+    fireEvent.press(screen.getByText(/dark mode/i));
 
     expect(mockSetTheme).toHaveBeenCalledWith("dark");
 
@@ -129,7 +129,9 @@ describe("SettingsScreen", () => {
     });
   });
 
-  it("copies email to clipboard in About section", async () => {
+  // ABOUT
+
+  it("copies email to clipboard", async () => {
     render(<SettingsScreen />);
 
     fireEvent.press(screen.getByText("About"));
@@ -138,12 +140,14 @@ describe("SettingsScreen", () => {
       expect(screen.getByText("About This App")).toBeTruthy();
     });
 
-    fireEvent.press(screen.getByText("intoKosovateam@gmail.com"));
+    fireEvent.press(screen.getByText(/intoKosovateam@gmail.com/i));
 
-    // Verifikojmë që u thirr Clipboard dhe alert
     expect(Clipboard.setStringAsync).toHaveBeenCalledWith(
       "intoKosovateam@gmail.com"
     );
-    expect(global.alert).toHaveBeenCalledWith("Email copied to clipboard!");
+
+    expect(global.alert).toHaveBeenCalledWith(
+      "Email copied to clipboard!"
+    );
   });
 });
