@@ -1,18 +1,17 @@
 import React from "react";
-import renderer, { act } from "react-test-renderer";
-import SettingsScreen from "@/app/(screens)/SettingsScreen";
-import { Pressable, Text } from "react-native";
+import { render, fireEvent } from "@testing-library/react-native";
+import SettingsScreen from "@/app/(tabs)/settings";
 
-// ================= MOCKS =================
+/* ================= MOCKS ================= */
 
-// Theme Context
+// Mock Theme Context
 jest.mock("@/contexts/ThemeContext", () => ({
   useThemeManager: () => ({
     setTheme: jest.fn(),
   }),
 }));
 
-// React Navigation Theme
+// Mock React Navigation theme
 jest.mock("@react-navigation/native", () => ({
   useTheme: () => ({
     dark: false,
@@ -25,37 +24,31 @@ jest.mock("@react-navigation/native", () => ({
   }),
 }));
 
-// AsyncStorage
+// Mock AsyncStorage
 jest.mock("@react-native-async-storage/async-storage", () => ({
   getItem: jest.fn(() => Promise.resolve(null)),
   setItem: jest.fn(),
   clear: jest.fn(),
 }));
 
-// Expo Notifications
-jest.mock("expo-notifications", () => ({
-  requestPermissionsAsync: jest.fn(() =>
-    Promise.resolve({ status: "granted" })
-  ),
-  scheduleNotificationAsync: jest.fn(),
-}));
-
-// Expo Application
+// Mock Expo modules
+jest.mock("expo-notifications", () => ({}));
 jest.mock("expo-application", () => ({
   nativeApplicationVersion: "1.0.0",
 }));
+jest.mock("expo-clipboard", () => ({}));
 
-// Clipboard
-jest.mock("expo-clipboard", () => ({
-  setStringAsync: jest.fn(),
+// 🔴 KRITIKE – mock IconSymbol (expo-symbols issue)
+jest.mock("@/components/ui/icon-symbol", () => ({
+  IconSymbol: () => null,
 }));
 
-// Reanimated (disable animations)
+// Disable animations
 jest.mock("react-native-reanimated", () =>
   require("react-native-reanimated/mock")
 );
 
-// SafeAreaView
+// SafeAreaView mock
 jest.mock("react-native-safe-area-context", () => {
   const React = require("react");
   return {
@@ -63,45 +56,29 @@ jest.mock("react-native-safe-area-context", () => {
   };
 });
 
-// =========================================
+/* ========================================= */
 
 describe("SettingsScreen – Snapshot tests", () => {
   it("renders default Settings screen", () => {
-    const tree = renderer.create(<SettingsScreen />).toJSON();
+    const tree = render(<SettingsScreen />).toJSON();
     expect(tree).toMatchSnapshot();
   });
 
-  it("renders Notifications modal (default OFF)", async () => {
-    const component = renderer.create(<SettingsScreen />);
+  it("renders Notifications modal (default OFF)", () => {
+    const screen = render(<SettingsScreen />);
 
-    const notificationsButton = component.root
-      .findAllByType(Pressable)
-      .find((node) =>
-        node
-          .findAllByType(Text)
-          .some((t) => t.props.children === "Notifications")
-      );
+    // Open Notifications modal
+    fireEvent.press(screen.getByText("Notifications"));
 
-    await act(async () => {
-      notificationsButton?.props.onPress();
-    });
-
-    expect(component.toJSON()).toMatchSnapshot();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
-  it("renders Theme selection modal", async () => {
-    const component = renderer.create(<SettingsScreen />);
+  it("renders Theme selection modal", () => {
+    const screen = render(<SettingsScreen />);
 
-    const themeButton = component.root
-      .findAllByType(Pressable)
-      .find((node) =>
-        node.findAllByType(Text).some((t) => t.props.children === "Theme")
-      );
+    // Open Theme modal
+    fireEvent.press(screen.getByText("Theme"));
 
-    await act(async () => {
-      themeButton?.props.onPress();
-    });
-
-    expect(component.toJSON()).toMatchSnapshot();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 });

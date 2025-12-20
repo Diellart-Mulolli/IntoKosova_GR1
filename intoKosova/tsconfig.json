@@ -8,12 +8,8 @@
       "@/hooks/*": ["./hooks/*"],
       "@/constants/*": ["./constants/*"],
       "@/components/*": ["./components/*"]
-    }
+    },
+    "types": ["jest", "@testing-library/jest-native"]
   },
-  "include": [
-    "**/*.ts",
-    "**/*.tsx",
-    ".expo/types/**/*.ts",
-    "expo-env.d.ts"
-  ]
+  "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts"]
 }
