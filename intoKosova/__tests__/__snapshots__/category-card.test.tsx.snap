@@ -1,0 +1,287 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`CategoryCard – Snapshot tests renders +X more when category has more than 2 items 1`] = `
+<View
+  entering={BaseAnimationMock {}}
+>
+  <View
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={true}
+    onBlur={[Function]}
+    onClick={[Function]}
+    onFocus={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+    style={{}}
+  >
+    <View
+      style={
+        [
+          {},
+          {
+            "borderLeftColor": "#2ecc71",
+          },
+        ]
+      }
+    >
+      <View
+        style={{}}
+      >
+        <View
+          style={
+            [
+              {},
+              {
+                "backgroundColor": "#2ecc7120",
+              },
+            ]
+          }
+        />
+        <View
+          style={{}}
+        >
+          <Text
+            style={{}}
+          >
+            Culture
+          </Text>
+          <Text
+            style={{}}
+          >
+            Traditions and heritage
+          </Text>
+          <View
+            style={{}}
+          >
+            <Text
+              style={{}}
+            >
+              • 
+              Museums
+            </Text>
+            <Text
+              style={{}}
+            >
+              • 
+              Festivals
+            </Text>
+            <Text
+              style={{}}
+            >
+              • +
+              2
+               more
+            </Text>
+          </View>
+        </View>
+      </View>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`CategoryCard – Snapshot tests renders category card with up to 2 items 1`] = `
+<View
+  entering={BaseAnimationMock {}}
+>
+  <View
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={true}
+    onBlur={[Function]}
+    onClick={[Function]}
+    onFocus={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+    style={{}}
+  >
+    <View
+      style={
+        [
+          {},
+          {
+            "borderLeftColor": "#2ecc71",
+          },
+        ]
+      }
+    >
+      <View
+        style={{}}
+      >
+        <View
+          style={
+            [
+              {},
+              {
+                "backgroundColor": "#2ecc7120",
+              },
+            ]
+          }
+        />
+        <View
+          style={{}}
+        >
+          <Text
+            style={{}}
+          >
+            Nature
+          </Text>
+          <Text
+            style={{}}
+          >
+            Beautiful places
+          </Text>
+          <View
+            style={{}}
+          >
+            <Text
+              style={{}}
+            >
+              • 
+              Mountains
+            </Text>
+            <Text
+              style={{}}
+            >
+              • 
+              Rivers
+            </Text>
+          </View>
+        </View>
+      </View>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`CategoryCard – Snapshot tests renders correctly when pressed 1`] = `
+<View
+  entering={BaseAnimationMock {}}
+>
+  <View
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={true}
+    onBlur={[Function]}
+    onClick={[Function]}
+    onFocus={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+    style={{}}
+  >
+    <View
+      style={
+        [
+          {},
+          {
+            "borderLeftColor": "#2ecc71",
+          },
+        ]
+      }
+    >
+      <View
+        style={{}}
+      >
+        <View
+          style={
+            [
+              {},
+              {
+                "backgroundColor": "#2ecc7120",
+              },
+            ]
+          }
+        />
+        <View
+          style={{}}
+        >
+          <Text
+            style={{}}
+          >
+            History
+          </Text>
+          <Text
+            style={{}}
+          >
+            Historic places
+          </Text>
+          <View
+            style={{}}
+          >
+            <Text
+              style={{}}
+            >
+              • 
+              Castles
+            </Text>
+          </View>
+        </View>
+      </View>
+    </View>
+  </View>
+</View>
+`;
