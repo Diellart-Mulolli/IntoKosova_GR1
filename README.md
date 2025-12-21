@@ -68,6 +68,13 @@ This project aims to create an educational and tourism-focused mobile app that h
 It serves as a digital guide for locals, tourists, and anyone interested in learning more about Kosovo.
 The project also emphasizes teamwork, user-centered design, and innovation in mobile development.
 
+## Testing
+In this project, automated tests have been implemented to ensure the stability and reliability of the core user-facing features. The test suite includes snapshot tests to verify that key screens and components render consistently over time, interaction tests to validate user behavior such as button presses, form input validation, modal visibility, and authentication flows, and mocking tests to isolate the application logic from external dependencies. Firebase authentication, navigation, storage, and Expo native modules are mocked to allow predictable and fast test execution without relying on real backend services or device-specific APIs. Together, these tests help prevent regressions, ensure correct user interactions, and maintain a stable and maintainable codebase.
+
+```bash
+npm test
+```
+
 ## Application Screenshots
 
 <table>
