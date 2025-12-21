@@ -39,8 +39,12 @@ function PlaceCardBase({
         style={styles.cardImg}
       />
       <View style={styles.cardContent}>
-        <Text style={styles.place} numberOfLines={1}>{place}</Text>
-        <Text style={styles.city} numberOfLines={1}>{city}</Text>
+        <Text style={styles.place} numberOfLines={1}>
+          {place}
+        </Text>
+        <Text style={styles.city} numberOfLines={1}>
+          {city}
+        </Text>
 
         {!!description && (
           <Text style={styles.desc} numberOfLines={2}>
@@ -50,7 +54,11 @@ function PlaceCardBase({
 
         {!!iconName && (
           <View style={[styles.badge, { backgroundColor: borderColor }]}>
-            <MaterialCommunityIcons name={iconName as any} size={14} color="#fff" />
+            <MaterialCommunityIcons
+              name={iconName as any}
+              size={14}
+              color="#fff"
+            />
           </View>
         )}
       </View>
@@ -58,7 +66,33 @@ function PlaceCardBase({
   );
 }
 
-export default React.memo(PlaceCardBase);
+// Comparator për React.memo (që mos me re-renderu pa nevojë)
+function areEqual(prev: Props, next: Props) {
+  const prevImg =
+    typeof prev.imageUri === "string"
+      ? prev.imageUri
+      : JSON.stringify(prev.imageUri);
+
+  const nextImg =
+    typeof next.imageUri === "string"
+      ? next.imageUri
+      : JSON.stringify(next.imageUri);
+
+  return (
+    prev.place === next.place &&
+    prev.city === next.city &&
+    prev.description === next.description &&
+    prevImg === nextImg &&
+    prev.borderColor === next.borderColor &&
+    prev.iconName === next.iconName &&
+    // krahaso vetëm fushat kryesore të palette që ndikojnë në UI
+    prev.palette?.card === next.palette?.card &&
+    prev.palette?.text === next.palette?.text &&
+    prev.palette?.textSecondary === next.palette?.textSecondary
+  );
+}
+
+export default React.memo(PlaceCardBase, areEqual);
 
 const createStyles = (palette: any) =>
   StyleSheet.create({
@@ -82,3 +116,4 @@ const createStyles = (palette: any) =>
       marginTop: 4,
     },
   });
+
