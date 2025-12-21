@@ -39,6 +39,7 @@ import Animated, { FadeInUp } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { v4 as uuidv4 } from "uuid";
 import { useThemeManager } from "../../contexts/ThemeContext";
+import { useLocalSearchParams } from "expo-router";
 import { auth, db } from "../../firebase/firebase";
 
 const placeholderImg = require("../../assets/images/icon.png");
@@ -114,7 +115,7 @@ const createStyles = (palette: any) =>
     },
     btn: { backgroundColor: palette.primary, padding: 16, borderRadius: 8, alignItems: "center" },
     btnDisabled: { opacity: 0.6 },
-    btnText: { color: "#fff", fontWeight: "600", fontSize: 16 },
+    btnText: { color: "#999", fontWeight: "600", fontSize: 32 },
     switchBtn: { marginTop: 16, alignItems: "center" },
     switchText: { color: palette.primary, fontWeight: "600" },
     logoutBtn: {
@@ -157,16 +158,16 @@ const createStyles = (palette: any) =>
     statusText: { marginLeft: 8, color: palette.textSecondary },
     successText: { color: "#4CAF50", fontWeight: "600" },
     modalBtns: { flexDirection: "row", justifyContent: "space-between", marginTop: 10 },
-    cancelBtn: { borderColor: "white" , borderWidth: 2 , padding: 12, flex: 1, marginRight: 6, alignItems: "center", backgroundColor: palette.border, borderRadius: 8 },
+    cancelBtn: { borderColor: "grey" , color:"black", borderWidth: 2 , padding: 12, flex: 1, marginRight: 6, alignItems: "center", backgroundColor: palette.border, borderRadius: 8  , fontWeight:100},
     saveBtn: { backgroundColor: palette.primary, padding: 12, flex: 1, marginHorizontal: 3, borderRadius: 8, alignItems: "center" , borderColor: "white" , borderWidth: 2},
-    addBtnStyle: { backgroundColor: "#4CAF50" },
+    addBtnStyle: { backgroundColor: "#ff0000" , height:50 },
     saveText: { color: "#fff", fontWeight: "600", alignItems:"center",fontSize:30 },
     imagePickerBtn: { backgroundColor: palette.primary, padding: 12, borderRadius: 8, marginBottom: 12, alignItems: "center" },
     imagePickerText: { color: "#fff", fontWeight: "600" },
     previewImg: { width: "100%", height: 200, borderRadius: 12, marginBottom: 12 },
   });
 
-// === AUTH FORM (MEMOIZED) ===
+// === AUTH FORM F(MEMOIZED) ===
 const AuthForm = React.memo((props: any) => {
   const { isSignUp, fullName, setFullName, birthDate, setBirthDate, emailOrPhone, setEmailOrPhone, password, setPassword, handleAuth, authLoading, palette, styles, toggleSignUp } = props;
   return (
@@ -200,6 +201,7 @@ export default function ProfileScreen() {
   const palette = isDark ? colors.dark : colors.light;
   const styles = useMemo(() => createStyles(palette), [palette]);
   const router = useRouter();
+  const params = useLocalSearchParams();
 
   const [user, setUser] = useState<UserData | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -232,6 +234,7 @@ export default function ProfileScreen() {
     category: "historical sites",
     image: "",
   });
+  const [saving, setSaving] = useState(false);
 
   // Modal visibility + fade helpers
   const [modalVisible, setModalVisible] = useState(false);
@@ -267,6 +270,55 @@ export default function ProfileScreen() {
 
   return unsubscribe;
 }, []);
+
+// Handle incoming photo params from Camera modal
+useEffect(() => {
+  const newPhotoBase64 = params.newPhotoBase64 as string | undefined;
+  const newPhotoId = params.newPhotoId as string | undefined;
+
+  if (newPhotoBase64) {
+    // Direct base64 or uri passed -> load into form and open modal
+    setForm((prev) => ({ ...prev, image: newPhotoBase64 }));
+    setEditingPhoto(null);
+    openModal();
+    router.setParams({ newPhotoBase64: undefined, newPhotoId: undefined });
+    return;
+  }
+
+  if (!newPhotoId || !isLoggedIn) return;
+
+  // If we got an ID, try to find it in-memory first
+  const found = photos.find((p) => p.id === newPhotoId);
+  if (found) {
+    setForm({ city: found.city, place: found.place, description: found.description, category: found.category, image: found.image });
+    setEditingPhoto(found);
+    openModal();
+    router.setParams({ newPhotoId: undefined });
+    return;
+  }
+
+  // Fallback: try reading from AsyncStorage
+  (async () => {
+    try {
+      const uid = auth.currentUser?.uid;
+      if (!uid) return;
+      const stored = await AsyncStorage.getItem(`photos_${uid}`);
+      if (!stored) return;
+      const arr = JSON.parse(stored);
+      const f = arr.find((p: any) => p.id === newPhotoId);
+      if (f) {
+        setForm({ city: f.city, place: f.place, description: f.description, category: f.category, image: f.image });
+        setEditingPhoto(f);
+        openModal();
+      }
+    } catch (e) {
+      console.warn("Failed to load new photo from storage", e);
+    } finally {
+      router.setParams({ newPhotoId: undefined });
+    }
+  })();
+
+}, [params.newPhotoBase64, params.newPhotoId, isLoggedIn, photos]);
 
 
   const generateCode = () =>
@@ -380,7 +432,7 @@ const handleConfirmPhoneCode = async () => {
       );
       const user = userCredential.user;
 
-      setCurrentUser({ fullName, emailOrPhone: user.email });
+      setCurrentUser({ fullName, emailOrPhone: user.email ?? undefined });
       setIsLoggedIn(true);
       Alert.alert("🎉 Account created!", `Welcome, ${fullName}!`);
 
@@ -490,25 +542,47 @@ const handleConfirmPhoneCode = async () => {
       Alert.alert("Error", "Fill City and Place");
       return;
     }
-    const uid = auth.currentUser!.uid;
-    const userDoc = await getDoc(doc(db, "users", uid));
-    const userId = userDoc.data()?.userId ?? uid;
-    const photoId = uuidv4();
-    const relativePath = `${BASE_PATH}/${userId}/photos/${photoId}.jpg`;
 
-    const newPhoto: Photo = {
-      id: photoId,
-      city: form.city,
-      place: form.place,
-      image: form.image || placeholderImg,
-      description: form.description,
-      category: form.category as Photo["category"],
-    };
-    const updated = [...photos, newPhoto];
-    setPhotos(updated);
-    await updateDoc(doc(db, "users", uid), { images: updated, lastSeen: serverTimestamp() });
-    await AsyncStorage.setItem(`photos_${uid}`, JSON.stringify(updated));
-    closeModal(() => setForm({ city: "Prishtina", place: "", description: "", category: "historical sites", image: "" }));
+    setSaving(true);
+
+    try {
+      const photoId = uuidv4();
+      const newPhoto: Photo = {
+        id: photoId,
+        city: form.city,
+        place: form.place,
+        image: form.image || placeholderImg,
+        description: form.description,
+        category: form.category as Photo["category"],
+      };
+
+      if (auth.currentUser) {
+        // Logged-in: save to Firestore and AsyncStorage
+        const uid = auth.currentUser.uid;
+        const userDoc = await getDoc(doc(db, "users", uid));
+        const userId = userDoc.data()?.userId ?? uid;
+        const updated = [...photos, newPhoto];
+        setPhotos(updated);
+        await updateDoc(doc(db, "users", uid), { images: updated, lastSeen: serverTimestamp() });
+        await AsyncStorage.setItem(`photos_${uid}`, JSON.stringify(updated));
+      } else {
+        // Guest: save locally and keep under a guest key
+        const photosKey = `photos_guest`;
+        const existing = await AsyncStorage.getItem(photosKey);
+        const arr = existing ? JSON.parse(existing) : [];
+        const updated = [...arr, newPhoto];
+        await AsyncStorage.setItem(photosKey, JSON.stringify(updated));
+        // also update local state so the UI shows the new card for the session
+        setPhotos((prev) => [...prev, newPhoto]);
+      }
+
+      closeModal(() => setForm({ city: "Prishtina", place: "", description: "", category: "historical sites", image: "" }));
+    } catch (err) {
+      console.error("Failed to add photo:", err);
+      Alert.alert("Error", "Failed to post photo. Try again.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const visiblePhotos = photos.filter((p) => !hiddenCards.includes(p.id));
@@ -637,22 +711,16 @@ const handleConfirmPhoneCode = async () => {
         <View style={styles.modalBtns}>
           <Pressable style={styles.cancelBtn} onPress={() => closeModal(() => setEditingPhoto(null))}><Text style={styles.btnText}>Cancel</Text></Pressable>
 
-          {/* TOGGLE mes email & phone */}
-          <Pressable onPress={() => setUsePhoneLogin(!usePhoneLogin)}>
-            <Text style={[styles.switchText, { color: palette.primary }]}>{usePhoneLogin ? "Use email & password instead" : "Use phone number instead"}</Text>
-          </Pressable>
-
           {editingPhoto && (
-            <Pressable
-              style={[styles.addBtn, styles.addBtnStyle]}
-              onPress={() => hideCard(editingPhoto)}
-            >
-              <Text style={styles.btnText}>Hide</Text>
+            <Pressable style={[styles.addBtn, styles.addBtnStyle] } onPress={() => hideCard(editingPhoto)}>
+              <Text style={styles.btnText}>Delete</Text>
             </Pressable>
           )}
 
-
-          </View>
+          <Pressable style={[styles.saveBtn, saving && { opacity: 0.6 }]} onPress={editingPhoto ? saveEdit : addCardWithoutImage} disabled={saving}>
+            {saving ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveText}>{editingPhoto ? "Save" : "Post"}</Text>}
+          </Pressable>
+        </View>
               </ScrollView>
 
       {/* reCAPTCHA container (WEB) */}

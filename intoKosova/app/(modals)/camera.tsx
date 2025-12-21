@@ -108,7 +108,7 @@ const cropPhoto = async () => {
   const info = await ImageManipulator.manipulateAsync(
     photoUri,
     [],
-    { base64: false }
+    { base64: true }
   );
 
   const size = Math.min(info.width, info.height);
@@ -152,6 +152,24 @@ const applyCrop = async () => {
 
   setPhotoUri(result.uri);
   setIsCropping(false);
+};
+
+// Use captured photo immediately in Profile Add Photo modal
+const useCapturedPhoto = async () => {
+  if (!photoUri) return;
+  try {
+    // Try to convert to base64 and send to profile so the modal can display it immediately
+    const base64 = await FileSystem.readAsStringAsync(photoUri, {
+      // Some SDK versions don't export EncodingType typings — use string literal to avoid TS errors
+      encoding: 'base64' as any,
+    });
+    const data = `data:image/jpeg;base64,${base64}`;
+    router.replace({ pathname: "/(tabs)/profile", params: { newPhotoBase64: data } });
+  } catch (err) {
+    // Fallback: send the URI if base64 conversion fails (e.g., web)
+    console.warn("Could not convert photo to base64, sending uri instead", err);
+    router.replace({ pathname: "/(tabs)/profile", params: { newPhotoBase64: photoUri } });
+  }
 };
 
 
@@ -212,12 +230,7 @@ const applyCrop = async () => {
 
       {/* USE PHOTO */}
       <Pressable
-        onPress={() =>
-          router.replace({
-            pathname: "/(tabs)/create",
-            params: { photo: photoUri },
-          })
-        }
+        onPress={useCapturedPhoto}
         style={styles.useButton}
       >
         <Ionicons name="checkmark" size={30} color="black" />
