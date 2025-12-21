@@ -1,20 +1,16 @@
-import React from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  Platform,
-  Pressable,
-} from "react-native";
-import { useTheme } from "@react-navigation/native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
-import { useRouter } from "expo-router";
-import { useThemeManager } from "@/contexts/ThemeContext";
 import CategoryCard from "@/components/category-card";
-import { FlatList } from "react-native";
-import { useCallback } from "react";
+import { useThemeManager } from "@/contexts/ThemeContext";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useFocusEffect, useTheme } from "@react-navigation/native";
+import * as Notifications from "expo-notifications";
+import { useRouter } from "expo-router";
+import React, { useCallback } from "react";
+
+import { FlatList, Platform, StyleSheet, Text } from "react-native";
+import Animated, { FadeInUp } from "react-native-reanimated";
+import { SafeAreaView } from "react-native-safe-area-context";
+
+
 
 // ----------------------------------------------------------------------
 // CATEGORY LIST (pa ndryshime!)
@@ -136,6 +132,49 @@ export default function ExplorationScreen() {
   const palette = theme.dark ? colors.dark : colors.light;
   const styles = createStyles(palette);
   const router = useRouter();
+
+
+const [reminderSent, setReminderSent] = React.useState(false);
+
+
+    async function sendReminderNotification() {
+  // Kontrollo në AsyncStorage nëse njoftimet janë enabled
+  const isEnabled = await AsyncStorage.getItem("NOTIFICATIONS_ENABLED");
+  if (isEnabled !== "true") return; // Nëse nuk janë enabled, nuk bën asgjë
+
+  if (Platform.OS === 'web') {
+    alert("Njoftimet punojnë vetëm në telefon.");
+    return;
+  }
+
+  try {
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: "📸 Don’t forget to snap a photo!",
+        body: "Capture the moment! Take a photo when you visit these spots.",
+        sound: true,
+        priority: Notifications.AndroidNotificationPriority.MAX,
+      },
+      trigger: { seconds: 1, channelId: 'default' }, // 1 sekondë pas klikimit
+    });
+  } catch (error) {
+    console.error("Gabim te njoftimi:", error);
+  }
+}
+useFocusEffect(
+  useCallback(() => {
+    const sendIfEnabled = async () => {
+      const isEnabled = await AsyncStorage.getItem("NOTIFICATIONS_ENABLED");
+      if (isEnabled === "true" && !reminderSent) {
+        await sendReminderNotification();
+        setReminderSent(true); // Tani nuk do ta dërgojë më këtë vizitë
+      }
+    };
+    sendIfEnabled();
+  }, [reminderSent])
+);
+
+
 
   const renderCategory = useCallback(   //per optimizim
   ({ item, index }) => (
