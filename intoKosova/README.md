@@ -1,15 +1,16 @@
 # intoKosova
 
-## Abstract Idea
-intoKosova is a mobile application built with **React Native (Expo)** that showcases the cultural heritage, natural beauty, and modern lifestyle of Kosovo.  
-The app provides a simple, elegant, and interactive way to explore the most remarkable destinations across the country.
+## About the Project
+intoKosova is a mobile application developed using **React Native (Expo)** that presents the cultural heritage, natural beauty, and modern lifestyle of Kosovo in a simple and interactive way.
 
-The goal of intoKosova is to promote Kosovo as a travel destination through a modern and immersive digital experience.
+The application serves as a digital guide for locals, tourists, and anyone interested in discovering Kosovo through a modern and immersive mobile experience.
 
-**Users can:**
-- Discover historical and cultural landmarks  
-- Explore natural parks and scenic landscapes  
-- Experience local traditions and modern life  
+**Main Features**
+- Discover historical and cultural landmarks
+- Explore natural parks and scenic landscapes
+- Experience modern life and traditions in Kosovo
+- Clean, modern, and user-friendly interface
+- Smooth animations and intuitive navigation
 
 ---
 
@@ -66,6 +67,8 @@ Purpose
 This project aims to create an educational and tourism-focused mobile app that highlights Kosovo’s identity, beauty, and diversity using modern technology and clean design.
 It serves as a digital guide for locals, tourists, and anyone interested in learning more about Kosovo.
 The project also emphasizes teamwork, user-centered design, and innovation in mobile development.
+
+## Application Screenshots
 
 ## Team — intoKosova
 

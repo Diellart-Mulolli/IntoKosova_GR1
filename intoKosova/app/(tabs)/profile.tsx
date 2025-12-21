@@ -1,47 +1,45 @@
 // app/(tabs)/profile.tsx
-import React, { useState, useEffect, useMemo } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  Pressable,
-  Image,
-  Alert,
-  Modal,
-  TextInput,
-  FlatList,
-  ActivityIndicator,
-} from "react-native";
-import { useRouter } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
-import Animated, { FadeInUp } from "react-native-reanimated";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+imfiport * as FileSystem from "expo-file-system/legacy";
 import * as ImagePicker from "expo-image-picker";
-import * as FileSystem from "expo-file-system/legacy";
+import { useRouter } from "expo-router";
 import {
-  signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   onAuthStateChanged,
-  signOut,
-  signInWithPhoneNumber,
   RecaptchaVerifier,
+  signInWithEmailAndPassword,
+  signInWithPhoneNumber,
+  signOut,
   User,
 } from "firebase/auth";
-import { auth, db } from "../../firebase";
 import {
   doc,
   getDoc,
-  setDoc,
-  updateDoc,
-  arrayUnion,
   serverTimestamp,
+  setDoc,
+  updateDoc
 } from "firebase/firestore";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import React, { useEffect, useMemo, useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  Image,
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
+import Animated, { FadeInUp } from "react-native-reanimated";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { v4 as uuidv4 } from "uuid";
-import placeholderImg from "../../dataStorage/user_001/photos/prishtina_boulevard_night.jpg";
-import profileFallback from "../../dataStorage/user_001/profile.webp";
 import { useThemeManager } from "../../contexts/ThemeContext";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+
+import { auth, db } from "../../firebase";
 
 const BASE_PATH = "/dataStorage";
 
