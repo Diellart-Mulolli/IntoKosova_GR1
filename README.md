@@ -70,12 +70,13 @@ The project also emphasizes teamwork, user-centered design, and innovation in mo
 
 ## Application Screenshots
 
-![Home Screen](./screenshots/home.png)
-![Profile Screen](./screenshots/profile.png)
-![Explore Screen](./screenshots/explore.png)
-![Add Screen](./screenshots/add.jpeg)
-![Settings Screen](./screenshots/settings.png)
-![Sign In Screen](./screenshots/signin.png)
+![Home Screen](./intoKosova/screenshots/home.png)
+![Profile Screen](./intoKosova/screenshots/profile.png)
+![Explore Screen](./intoKosova/screenshots/explore.png)
+![Add Screen](./intoKosova/screenshots/add.jpeg)
+![Settings Screen](./intoKosova/screenshots/settings.png)
+![Sign In Screen](./intoKosova/screenshots/signin.png)
+
 
 ## Team — intoKosova
 
