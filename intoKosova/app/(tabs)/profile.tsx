@@ -27,7 +27,7 @@ import {
   RecaptchaVerifier,
   User,
 } from "firebase/auth";
-import { auth, db } from "../../firebase";
+import { auth, db } from "../../firebase/firebase";
 import {
   doc,
   getDoc,
@@ -38,8 +38,6 @@ import {
 } from "firebase/firestore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { v4 as uuidv4 } from "uuid";
-import placeholderImg from "../../dataStorage/user_001/photos/prishtina_boulevard_night.jpg";
-import profileFallback from "../../dataStorage/user_001/profile.webp";
 import { useThemeManager } from "../../contexts/ThemeContext";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
@@ -384,7 +382,7 @@ const handleConfirmPhoneCode = async () => {
         birthDate: birthDate || "",
         createdAt: serverTimestamp(),
         lastSeen: serverTimestamp(),
-        photoURL: profileFallback,
+        photoURL: null,
         images: [],
       });
     } else {
@@ -448,7 +446,7 @@ const handleConfirmPhoneCode = async () => {
   const saveEdit = async () => {
     if (!editingPhoto) return;
     const uid = auth.currentUser!.uid;
-    const updatedPhotos = photos.map((p) => (p.id === editingPhoto.id ? { ...p, ...form } : p));
+    const updatedPhotos = photos.map((p) => (p.id === editingPhoto.id ? { ...p, ...form, category: form.category as Photo["category"] } : p));
     setPhotos(updatedPhotos);
     await setDoc(doc(db, "users", uid), { images: updatedPhotos }, { merge: true });
     await AsyncStorage.setItem(`photos_${uid}`, JSON.stringify(updatedPhotos));
@@ -481,9 +479,9 @@ const handleConfirmPhoneCode = async () => {
       id: photoId,
       city: form.city,
       place: form.place,
-      image: form.image || placeholderImg,
+      image: form.image || "",
       description: form.description,
-      category: form.category,
+      category: form.category as Photo["category"],
     };
     const updated = [...photos, newPhoto];
     setPhotos(updated);
@@ -518,7 +516,13 @@ const handleConfirmPhoneCode = async () => {
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.header}>
           <Pressable style={styles.logoutBtn} onPress={handleLogout}><Text style={styles.logoutText}>Logout</Text></Pressable>
-          <Image source={user?.photoURL ? { uri: user.photoURL } : profileFallback} style={styles.avatar} />
+          {user?.photoURL ? (
+            <Image source={{ uri: user.photoURL }} style={styles.avatar} />
+          ) : (
+            <View style={[styles.avatar, { backgroundColor: palette.primary, justifyContent: "center", alignItems: "center" }]}>
+              <MaterialCommunityIcons name="account" size={50} color="#fff" />
+            </View>
+          )}
           <Text style={styles.name}>{user?.fullName}</Text>
           <Text style={styles.email}>{user?.emailOrPhone}</Text>
         </View>
@@ -540,7 +544,13 @@ const handleConfirmPhoneCode = async () => {
             return (
               <View style={styles.cardWrapper}>
                 <Pressable style={[styles.card, { borderColor }]} onLongPress={() => startEdit(item)}>
-                  <Image source={{ uri: item.image }} style={styles.cardImg} defaultSource={placeholderImg} />
+                  {item.image ? (
+                    <Image source={{ uri: item.image }} style={styles.cardImg} />
+                  ) : (
+                    <View style={[styles.cardImg, { backgroundColor: palette.card, justifyContent: "center", alignItems: "center" }]}>
+                      <MaterialCommunityIcons name="image-off" size={40} color={palette.textSecondary} />
+                    </View>
+                  )}
                   <View style={styles.cardContent}>
                     <Text style={styles.place}>{item.place}</Text>
                     <Text style={styles.city}>{item.city}</Text>
@@ -568,7 +578,10 @@ const handleConfirmPhoneCode = async () => {
         {form.image ? (
           <Image source={{ uri: form.image }} style={styles.previewImg} />
         ) : (
-          <Image source={placeholderImg} style={styles.previewImg} />
+          <View style={[styles.previewImg, { backgroundColor: palette.card, justifyContent: "center", alignItems: "center" }]}>
+            <MaterialCommunityIcons name="image-plus" size={50} color={palette.textSecondary} />
+            <Text style={{ color: palette.textSecondary, marginTop: 8 }}>No image selected</Text>
+          </View>
         )}
         <Pressable style={styles.imagePickerBtn} onPress={pickImage}>
           <Text style={styles.imagePickerText}>Pick Image</Text>
@@ -607,9 +620,9 @@ const handleConfirmPhoneCode = async () => {
               <Pressable
                 key={cat.key}
                 style={[styles.catCircle, { backgroundColor: cat.color }, isSelected && styles.catCircleSelected]}
-                onPress={() => setForm({ ...form, category: cat.key })}
+                onPress={() => setForm({ ...form, category: cat.key as Photo["category"] })}
               >
-                <MaterialCommunityIcons name={cat.icon} size={28} color="#fff" />
+                <MaterialCommunityIcons name={cat.icon as any} size={28} color="#fff" />
                 {isSelected && <View style={styles.selectedBorder} />}
               </Pressable>
             );
@@ -618,80 +631,34 @@ const handleConfirmPhoneCode = async () => {
 
         <View style={styles.modalBtns}>
           <Pressable
-            style={[
-              styles.button,
-              {
-                backgroundColor:
-                  colorScheme === "dark" ? "#005FCC" : theme.primary,
-              },
-            ]}
-            onPress={
-              usePhoneLogin
-                ? confirmResult
-                  ? handleConfirmPhoneCode // pasi të jetë dërguar kodi
-                  : handleSendPhoneCode // dërgon SMS-in
-                : isSignUp
-                ? handleSignUp
-                : handleSignIn
-            }
+            style={styles.cancelBtn}
+            onPress={() => {
+              setEditModal(false);
+              setEditingPhoto(null);
+            }}
           >
-            <Text style={styles.buttonText}>
-              {usePhoneLogin
-                ? confirmResult
-                  ? "Confirm Code"
-                  : "Send Code"
-                : isSignUp
-                ? "Sign Up"
-                : "Sign In"}
-            </Text>
-          </Pressable>
-
-          {/* TOGGLE mes email & phone */}
-          <Pressable onPress={() => setUsePhoneLogin(!usePhoneLogin)}>
-            <Text style={[styles.linkText, { color: theme.primary }]}>
-              {usePhoneLogin
-                ? "Use email & password instead"
-                : "Use phone number instead"}
-            </Text>
+            <Text style={styles.btnText}>Cancel</Text>
           </Pressable>
 
           {editingPhoto && (
             <Pressable
-              style={[
-                styles.googleBtn,
-                {
-                  backgroundColor:
-                    colorScheme === "dark" ? "#111" : "#fff",
-                  borderColor: colorScheme === "dark" ? "#333" : "#ddd",
-                },
-              ]}
-              onPress={handleGoogleLogin}
+              style={[styles.addBtn, styles.addBtnStyle]}
+              onPress={() => hideCard(editingPhoto)}
             >
-              <AntDesign name="google" size={22} color="#DB4437" />
-              <Text
-                style={[
-                  styles.googleText,
-                  { color: theme.text, marginLeft: 8 },
-                ]}
-              >
-                Continue with Google
-              </Text>
+              <Text style={styles.btnText}>Hide</Text>
             </Pressable>
           )}
 
-          {/* Switch Sign In / Sign Up */}
-          <Pressable onPress={() => setIsSignUp(!isSignUp)}>
-            <Text style={[styles.linkText, { color: theme.primary }]}>
-              {isSignUp
-                ? "Already have an account? Sign In"
-                : "Don't have an account? Sign Up"}
+          <Pressable
+            style={styles.saveBtn}
+            onPress={editingPhoto ? saveEdit : addCardWithoutImage}
+          >
+            <Text style={styles.saveText}>
+              {editingPhoto ? "Save" : "Add"}
             </Text>
           </Pressable>
-          </View>
-              </ScrollView>
-
-      {/* reCAPTCHA container (WEB) */}
-      <View id="recaptcha-container" />
+        </View>
+      </ScrollView>
     </View>
   </View>
 </Modal>
