@@ -18,8 +18,7 @@ jest.mock("firebase/auth", () => ({
   signOut: jest.fn(),
 }));
 
-// ✅ FIXED Firebase config path (using alias)
-jest.mock("@/firebase", () => ({
+jest.mock("../firebase/firebase", () => ({
   auth: {},
 }));
 
@@ -28,7 +27,6 @@ describe("ProfileScreen (Register-like tests)", () => {
     jest.clearAllMocks();
   });
 
-  // ---------- helpers ----------
   const mockLoggedOut = () => {
     (onAuthStateChanged as jest.Mock).mockImplementation((_auth, cb) => {
       cb(null);
@@ -53,7 +51,6 @@ describe("ProfileScreen (Register-like tests)", () => {
 
     const { findByText, findByPlaceholderText } = render(<ProfileScreen />);
 
-    // wait for auth resolution
     await waitFor(() => expect(onAuthStateChanged).toHaveBeenCalled());
 
     expect(await findByText("Welcome back")).toBeTruthy();
@@ -107,14 +104,11 @@ describe("ProfileScreen (Register-like tests)", () => {
 
   // ================= AUTH SUCCESS =================
 
-  it("calls signInWithEmailAndPassword on successful login", async () => {
+  it("calls signInWithEmailAndPassword on login", async () => {
     mockLoggedOut();
 
     (signInWithEmailAndPassword as jest.Mock).mockResolvedValue({
-      user: {
-        email: "test@email.com",
-        displayName: "Test User",
-      },
+      user: { email: "test@email.com" },
     });
 
     const { findByPlaceholderText, findByText } = render(<ProfileScreen />);
