@@ -85,16 +85,12 @@ npm test
     <td align="center">
       <img src="./intoKosova/screenshots/profile.png" width="200"/>
     </td>
-  </tr>
-  <tr>
     <td align="center">
       <img src="./intoKosova/screenshots/explore.png" width="200"/>
     </td>
     <td align="center">
       <img src="./intoKosova/screenshots/add.jpeg" width="200"/>
     </td>
-  </tr>
-  <tr>
     <td align="center">
       <img src="./intoKosova/screenshots/settings.png" width="200"/>
     </td>
