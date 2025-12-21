@@ -1,7 +1,7 @@
 // app/(tabs)/profile.tsx
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-imfiport * as FileSystem from "expo-file-system/legacy";
+import * as FileSystem from "expo-file-system/legacy";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import {
@@ -39,7 +39,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { v4 as uuidv4 } from "uuid";
 import { useThemeManager } from "../../contexts/ThemeContext";
 
-import { auth, db } from "../../firebase";
+
 
 const BASE_PATH = "/dataStorage";
 
