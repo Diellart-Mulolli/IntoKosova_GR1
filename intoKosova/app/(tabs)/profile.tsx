@@ -20,7 +20,7 @@ import {
   setDoc,
   updateDoc
 } from "firebase/firestore";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -33,11 +33,16 @@ import {
   Text,
   TextInput,
   View,
+  Animated as RNAnim,
 } from "react-native";
 import Animated, { FadeInUp } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { v4 as uuidv4 } from "uuid";
 import { useThemeManager } from "../../contexts/ThemeContext";
+import { auth, db } from "../../firebase/firebase";
+
+const placeholderImg = require("../../assets/images/icon.png");
+const profileFallback = placeholderImg;
 
 
 
@@ -207,7 +212,7 @@ export default function ProfileScreen() {
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [registeredUsers, setRegisteredUsers] = useState([]);
-  const [currentUser, setCurrentUser] = useState(null);
+  const [currentUser, setCurrentUser] = useState<{ fullName: string; emailOrPhone?: string } | null>(null);
   const [newPassword, setNewPassword] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
   const [sentCode, setSentCode] = useState(null);
@@ -227,6 +232,25 @@ export default function ProfileScreen() {
     category: "historical sites",
     image: "",
   });
+
+  // Modal visibility + fade helpers
+  const [modalVisible, setModalVisible] = useState(false);
+  const modalOpacity = useRef(new RNAnim.Value(1)).current;
+
+  const openModal = () => {
+    modalOpacity.setValue(1);
+    setModalVisible(true);
+    setEditModal(true);
+  };
+
+  const closeModal = (onClosed?: () => void) => {
+    RNAnim.timing(modalOpacity, { toValue: 0, duration: 220, useNativeDriver: true }).start(() => {
+      setEditModal(false);
+      setModalVisible(false);
+      if (onClosed) onClosed();
+      modalOpacity.setValue(1);
+    });
+  };
     const colorScheme = isDark ? "dark" : "light";
     useEffect(() => {
   const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -248,7 +272,7 @@ export default function ProfileScreen() {
   const generateCode = () =>
     Math.floor(100000 + Math.random() * 900000).toString();
 
-  const calculateAge = (day, month, year) => {
+  const calculateAge = (day: number, month: number, year: number) => {
     const today = new Date();
     let age = today.getFullYear() - year;
     const m = today.getMonth() + 1 - month;
@@ -320,10 +344,10 @@ const handleConfirmPhoneCode = async () => {
 
     setCurrentUser({
       fullName: user.displayName || "Phone User",
-      emailOrPhone: user.phoneNumber,
+      emailOrPhone: user.phoneNumber ?? undefined,
     });
 
-    setIsAuthenticated(true);
+    setIsLoggedIn(true);
     router.replace("/(tabs)/homepage");
   } catch (error: any) {
     console.log(error);
@@ -357,7 +381,7 @@ const handleConfirmPhoneCode = async () => {
       const user = userCredential.user;
 
       setCurrentUser({ fullName, emailOrPhone: user.email });
-      setIsAuthenticated(true);
+      setIsLoggedIn(true);
       Alert.alert("🎉 Account created!", `Welcome, ${fullName}!`);
 
       router.replace("/(tabs)/homepage");
@@ -427,8 +451,7 @@ const handleConfirmPhoneCode = async () => {
   // Hide a card instead of deleting
   const hideCard = (photo: Photo) => {
     setHiddenCards((prev) => [...prev, photo.id]);
-    setEditModal(false);
-    setEditingPhoto(null);
+    closeModal(() => setEditingPhoto(null));
   };
 
   const startEdit = (photo: Photo) => {
@@ -440,20 +463,18 @@ const handleConfirmPhoneCode = async () => {
       category: photo.category,
       image: photo.image,
     });
-    setEditModal(true);
+    openModal();
   };
 
   const saveEdit = async () => {
     if (!editingPhoto) return;
     const uid = auth.currentUser!.uid;
-    const updatedPhotos = photos.map((p) => (p.id === editingPhoto.id ? { ...p, ...form } : p));
+    const updatedPhotos = photos.map((p) => (p.id === editingPhoto.id ? { ...p, ...form, category: form.category as Photo["category"] } : p));
     setPhotos(updatedPhotos);
     await setDoc(doc(db, "users", uid), { images: updatedPhotos }, { merge: true });
     await AsyncStorage.setItem(`photos_${uid}`, JSON.stringify(updatedPhotos));
-    setEditModal(false);
-    setEditingPhoto(null);
+    closeModal(() => setEditingPhoto(null));
   };
-
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -481,14 +502,13 @@ const handleConfirmPhoneCode = async () => {
       place: form.place,
       image: form.image || placeholderImg,
       description: form.description,
-      category: form.category,
+      category: form.category as Photo["category"],
     };
     const updated = [...photos, newPhoto];
     setPhotos(updated);
     await updateDoc(doc(db, "users", uid), { images: updated, lastSeen: serverTimestamp() });
     await AsyncStorage.setItem(`photos_${uid}`, JSON.stringify(updated));
-    setEditModal(false);
-    setForm({ city: "Prishtina", place: "", description: "", category: "historical sites", image: "" });
+    closeModal(() => setForm({ city: "Prishtina", place: "", description: "", category: "historical sites", image: "" }));
   };
 
   const visiblePhotos = photos.filter((p) => !hiddenCards.includes(p.id));
@@ -525,7 +545,7 @@ const handleConfirmPhoneCode = async () => {
           <Text style={styles.instructionsText}>Long press a card to edit and to delete as well</Text>
         </View>
 
-        <Pressable style={styles.addBtn} onPress={() => setEditModal(true)}><Text style={styles.addText}>+ Add Photo</Text></Pressable>
+        <Pressable style={styles.addBtn} onPress={() => { setEditingPhoto(null); setForm({ city: "Prishtina", place: "", description: "", category: "historical sites", image: "" }); openModal(); }}><Text style={styles.addText}>+ Add Photo</Text></Pressable>
 
         <FlatList
           data={visiblePhotos}
@@ -555,8 +575,8 @@ const handleConfirmPhoneCode = async () => {
         />
       </ScrollView>
 
-      <Modal visible={editModal} transparent animationType="fade">
-  <View style={styles.modalOverlay}>
+      <Modal visible={modalVisible} transparent animationType="none">
+  <RNAnim.View style={[styles.modalOverlay, { opacity: modalOpacity }]}>
     <View style={[styles.modal, { maxHeight: "90%" }]}>
       <ScrollView contentContainerStyle={{ paddingBottom: 20 }}
         showsVerticalScrollIndicator={false}>
@@ -607,7 +627,7 @@ const handleConfirmPhoneCode = async () => {
                 style={[styles.catCircle, { backgroundColor: cat.color }, isSelected && styles.catCircleSelected]}
                 onPress={() => setForm({ ...form, category: cat.key })}
               >
-                <MaterialCommunityIcons name={cat.icon} size={28} color="#fff" />
+                <MaterialCommunityIcons name={cat.icon as any} size={28} color="#fff" />
                 {isSelected && <View style={styles.selectedBorder} />}
               </Pressable>
             );
@@ -615,83 +635,30 @@ const handleConfirmPhoneCode = async () => {
         </View>
 
         <View style={styles.modalBtns}>
-          <Pressable
-            style={[
-              styles.button,
-              {
-                backgroundColor:
-                  colorScheme === "dark" ? "#005FCC" : theme.primary,
-              },
-            ]}
-            onPress={
-              usePhoneLogin
-                ? confirmResult
-                  ? handleConfirmPhoneCode // pasi të jetë dërguar kodi
-                  : handleSendPhoneCode // dërgon SMS-in
-                : isSignUp
-                ? handleSignUp
-                : handleSignIn
-            }
-          >
-            <Text style={styles.buttonText}>
-              {usePhoneLogin
-                ? confirmResult
-                  ? "Confirm Code"
-                  : "Send Code"
-                : isSignUp
-                ? "Sign Up"
-                : "Sign In"}
-            </Text>
-          </Pressable>
+          <Pressable style={styles.cancelBtn} onPress={() => closeModal(() => setEditingPhoto(null))}><Text style={styles.btnText}>Cancel</Text></Pressable>
 
           {/* TOGGLE mes email & phone */}
           <Pressable onPress={() => setUsePhoneLogin(!usePhoneLogin)}>
-            <Text style={[styles.linkText, { color: theme.primary }]}>
-              {usePhoneLogin
-                ? "Use email & password instead"
-                : "Use phone number instead"}
-            </Text>
+            <Text style={[styles.switchText, { color: palette.primary }]}>{usePhoneLogin ? "Use email & password instead" : "Use phone number instead"}</Text>
           </Pressable>
 
           {editingPhoto && (
             <Pressable
-              style={[
-                styles.googleBtn,
-                {
-                  backgroundColor:
-                    colorScheme === "dark" ? "#111" : "#fff",
-                  borderColor: colorScheme === "dark" ? "#333" : "#ddd",
-                },
-              ]}
-              onPress={handleGoogleLogin}
+              style={[styles.addBtn, styles.addBtnStyle]}
+              onPress={() => hideCard(editingPhoto)}
             >
-              <AntDesign name="google" size={22} color="#DB4437" />
-              <Text
-                style={[
-                  styles.googleText,
-                  { color: theme.text, marginLeft: 8 },
-                ]}
-              >
-                Continue with Google
-              </Text>
+              <Text style={styles.btnText}>Hide</Text>
             </Pressable>
           )}
 
-          {/* Switch Sign In / Sign Up */}
-          <Pressable onPress={() => setIsSignUp(!isSignUp)}>
-            <Text style={[styles.linkText, { color: theme.primary }]}>
-              {isSignUp
-                ? "Already have an account? Sign In"
-                : "Don't have an account? Sign Up"}
-            </Text>
-          </Pressable>
+
           </View>
               </ScrollView>
 
       {/* reCAPTCHA container (WEB) */}
       <View id="recaptcha-container" />
     </View>
-  </View>
+  </RNAnim.View>
 </Modal>
   </SafeAreaView>
   );

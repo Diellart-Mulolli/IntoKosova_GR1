@@ -8,6 +8,7 @@ interface ThemeContextProps {
   theme: ThemeType;
   setTheme: (theme: ThemeType) => void;
   colorScheme: "light" | "dark";
+  isDark: boolean;
   colors: {
     light: Palette;
     dark: Palette;
