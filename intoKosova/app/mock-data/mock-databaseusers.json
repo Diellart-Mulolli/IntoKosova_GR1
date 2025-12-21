@@ -1,0 +1,128 @@
+{
+  "user_001": {
+    "uid": "user_001",
+    "userId": "user_001",
+    "fullName": "Ana Krasniqi",
+    "emailOrPhone": "+38344123456",
+    "birthDate": "12/05/1997",
+    "createdAt": "2025-11-15T18:27:00Z",
+    "lastSeen": "2025-12-20T14:30:00Z",
+    "photoURL": null,
+    "photos": {
+      "photo_001": {
+        "name": "prizren_fortress_sunset.jpg",
+        "type": "image/jpeg",
+        "size": 24567,
+        "uploadedAt": "2025-12-20T14:30:00Z",
+        "city": "Prizren",
+        "place": "Prizren Fortress",
+        "description": "Golden hour from the top of the fortress.",
+        "category": "historical sites"
+      },
+      "photo_002": {
+        "name": "prishtina_boulevard_night.jpg",
+        "type": "image/jpeg",
+        "size": 28912,
+        "uploadedAt": "2025-12-20T15:00:00Z",
+        "city": "Prishtina",
+        "place": "Mother Teresa Boulevard",
+        "description": "Evening walk with friends.",
+        "category": "modern kosovo"
+      }
+    }
+  },
+  "user_002": {
+    "uid": "user_002",
+    "userId": "user_002",
+    "fullName": "Liridon Mehmeti",
+    "emailOrPhone": "liridon@example.com",
+    "birthDate": "23/09/1995",
+    "createdAt": "2025-11-15T18:27:00Z",
+    "lastSeen": "2025-12-20T14:30:00Z",
+    "photoURL": null,
+    "photos": {
+      "photo_001": {
+        "name": "gjakova_bazaar.jpg",
+        "type": "image/jpeg",
+        "size": 31245,
+        "uploadedAt": "2025-12-20T14:45:00Z",
+        "city": "Gjakova",
+        "place": "Old Bazaar",
+        "description": "Handcrafted copper pots.",
+        "category": "cultural heritage"
+      },
+      "photo_002": {
+        "name": "rugova_canyon.jpg",
+        "type": "image/jpeg",
+        "size": 27890,
+        "uploadedAt": "2025-12-20T15:15:00Z",
+        "city": "Peja",
+        "place": "Rugova Canyon",
+        "description": "Hiking trail with clear water.",
+        "category": "natural wonders"
+      },
+      "photo_003": {
+        "name": "peja_monastery.jpg",
+        "type": "image/jpeg",
+        "size": 30123,
+        "uploadedAt": "2025-12-20T15:30:00Z",
+        "city": "Peja",
+        "place": "Peć Patriarchate",
+        "description": "Ancient monastery in Peja.",
+        "category": "historical sites"
+      }
+    }
+  },
+  "user_003": {
+    "uid": "user_003",
+    "userId": "user_003",
+    "fullName": "Diellart Mulolli",
+    "emailOrPhone": "diellart.mulolli@student.uni-pr.edu",
+    "birthDate": "28/10/2005",
+    "createdAt": "2025-11-15T18:27:00Z",
+    "lastSeen": "2025-12-20T14:30:00Z",
+    "photoURL": null,
+    "photos": {
+      "photo_001": {
+        "name": "sinan_pasha_mosque.jpg",
+        "type": "image/jpeg",
+        "size": 28945,
+        "uploadedAt": "2025-12-20T14:45:00Z",
+        "city": "Prizren",
+        "place": "Sinan Pasha Mosque",
+        "description": "Ottoman architecture.",
+        "category": "historical sites"
+      },
+      "photo_002": {
+        "name": "ibar_bridge.jpg",
+        "type": "image/jpeg",
+        "size": 26789,
+        "uploadedAt": "2025-12-20T15:00:00Z",
+        "city": "Mitrovica",
+        "place": "Ibar Bridge",
+        "description": "Bridge connecting cultures.",
+        "category": "modern kosovo"
+      },
+      "photo_003": {
+        "name": "bifurcation_square.jpg",
+        "type": "image/jpeg",
+        "size": 29876,
+        "uploadedAt": "2025-12-20T15:15:00Z",
+        "city": "Ferizaj",
+        "place": "Bifurcation Square",
+        "description": "Central square with clock tower.",
+        "category": "modern kosovo"
+      },
+      "photo_004": {
+        "name": "stone_castle_vineyard.jpg",
+        "type": "image/jpeg",
+        "size": 31567,
+        "uploadedAt": "2025-12-20T15:30:00Z",
+        "city": "Rahovec",
+        "place": "Stone Castle Vineyard",
+        "description": "Sunset over the vineyards.",
+        "category": "culinary journey"
+      }
+    }
+  }
+}
