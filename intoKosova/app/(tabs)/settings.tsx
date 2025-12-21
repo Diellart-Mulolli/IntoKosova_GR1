@@ -8,13 +8,13 @@ import * as Clipboard from "expo-clipboard";
 import * as Notifications from "expo-notifications";
 import React, { useCallback, useEffect, useState } from "react";
 import {
-    Alert,
-    Modal,
-    Platform,
-    Pressable,
-    StyleSheet,
-    Switch,
-    View
+  Alert,
+  Modal,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Switch,
+  View,
 } from "react-native";
 import FadeTouchable from "@/components/ui/fade-touchable";
 import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
@@ -43,12 +43,12 @@ export default function SettingsScreen() {
   // 1. KRIJIMI I KANALIT PËR ANDROID DHE KONTROLLI I LEJEVE
   useEffect(() => {
     async function prepareNotifications() {
-      if (Platform.OS === 'android') {
-        await Notifications.setNotificationChannelAsync('default', {
-          name: 'default',
+      if (Platform.OS === "android") {
+        await Notifications.setNotificationChannelAsync("default", {
+          name: "default",
           importance: Notifications.AndroidImportance.MAX,
           vibrationPattern: [0, 250, 250, 250],
-          lightColor: '#FF231F7C',
+          lightColor: "#FF231F7C",
         });
       }
 
@@ -74,22 +74,23 @@ export default function SettingsScreen() {
   // 2. TOGGLE NOTIFICATIONS ME KËRKESË LEJEJE
   const toggleNotifications = async () => {
     if (Platform.OS === "web") {
-      alert("Njoftimet nuk mbështeten në versionin Web.");
+      alert("Notifications are not supported on the Web version.");
       return;
     }
 
-    const { status: existingStatus } = await Notifications.getPermissionsAsync();
+    const { status: existingStatus } =
+      await Notifications.getPermissionsAsync();
     let finalStatus = existingStatus;
 
-    if (existingStatus !== 'granted') {
+    if (existingStatus !== "granted") {
       const { status } = await Notifications.requestPermissionsAsync();
       finalStatus = status;
     }
 
-    if (finalStatus !== 'granted') {
+    if (finalStatus !== "granted") {
       Alert.alert(
-        "Leja u refuzua", 
-        "Duhet të aktivizoni njoftimet në Settings të telefonit për këtë aplikacion."
+        "Permission Denied",
+        "You need to enable notifications in your phone's Settings for this app."
       );
       return;
     }
@@ -101,32 +102,32 @@ export default function SettingsScreen() {
 
   // 3. DËRGIMI I NJOFTIMIT TESTUES
   const sendTestNotification = async () => {
-  if (Platform.OS === 'web') {
-    alert("Njoftimet testuese punojnë vetëm në telefon.");
-    return;
-  }
+    if (Platform.OS === "web") {
+      alert("Test notifications work only on a phone.");
+      return;
+    }
 
-  try {
-    await Notifications.scheduleNotificationAsync({
-      content: {
-        title: "📩 Test i Suksesshëm!",
-        body: "Nëse e sheh këtë, njoftimet po punojnë saktë.",
-        sound: true,
-        priority: Notifications.AndroidNotificationPriority.MAX,
-      },
-      // Ndryshimi kryesor këtu:
-      trigger: { 
-        seconds: 2,
-        channelId: 'default', // Duhet të përputhet me emrin te useEffect
-      } as Notifications.NotificationTriggerInput, 
-    });
+    try {
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: "📩 Test Successful!",
+          body: "If you see this, notifications are working correctly.",
+          sound: true,
+          priority: Notifications.AndroidNotificationPriority.MAX,
+        },
 
-    Alert.alert("Dërguar", "Njoftimi do të shfaqet pas 2 sekondave.");
-  } catch (error) {
-    console.error("Gabimi te njoftimi:", error);
-    alert("Trigger-i nuk është i vlefshëm.");
-  }
-};
+        trigger: {
+          seconds: 2,
+          channelId: "default", // Duhet të përputhet me emrin te useEffect
+        } as Notifications.NotificationTriggerInput,
+      });
+
+      Alert.alert("Sent", "The notification will appear after 2 seconds.");
+    } catch (error) {
+      console.error("Notification error:", error);
+      alert("The trigger is not valid.");
+    }
+  };
 
   const handleResetProgress = useCallback(() => {
     const askConfirmation = (): Promise<boolean> => {
@@ -136,65 +137,137 @@ export default function SettingsScreen() {
         );
       }
       return new Promise((resolve) => {
-        Alert.alert(
-          "Reset Progress",
-          "Are you sure? This cannot be undone.",
-          [
-            { text: "Cancel", style: "cancel", onPress: () => resolve(false) },
-            { text: "Delete", style: "destructive", onPress: () => resolve(true) },
-          ]
-        );
+        Alert.alert("Reset Progress", "Are you sure? This cannot be undone.", [
+          { text: "Cancel", style: "cancel", onPress: () => resolve(false) },
+          {
+            text: "Delete",
+            style: "destructive",
+            onPress: () => resolve(true),
+          },
+        ]);
       });
     };
 
     askConfirmation().then(async (confirmed) => {
       if (!confirmed) return;
       await AsyncStorage.clear();
-      Platform.OS === "web" ? window.location.reload() : Alert.alert("Success", "Progress deleted.");
+      Platform.OS === "web"
+        ? window.location.reload()
+        : Alert.alert("Success", "Progress deleted.");
     });
   }, []);
 
   const settingsOptions = [
-    { id: 1, title: "Notifications", icon: "bell.fill", action: () => openSection("notifications") },
-    { id: 2, title: "Theme", icon: "paintpalette.fill", action: () => openSection("theme") },
-    { id: 3, title: "About", icon: "info.circle", action: () => openSection("about") },
-    { id: 4, title: "Accessibility", icon: "accessibility", action: () => console.log("Pressed") },
-    { id: 5, title: "Reset Progress", icon: "xmark", action: () => openSection("reset") },
+    {
+      id: 1,
+      title: "Notifications",
+      icon: "bell.fill",
+      action: () => openSection("notifications"),
+    },
+    {
+      id: 2,
+      title: "Theme",
+      icon: "paintpalette.fill",
+      action: () => openSection("theme"),
+    },
+    {
+      id: 3,
+      title: "About",
+      icon: "info.circle",
+      action: () => openSection("about"),
+    },
+    {
+      id: 4,
+      title: "Accessibility",
+      icon: "accessibility",
+      action: () => console.log("Pressed"),
+    },
+    {
+      id: 5,
+      title: "Reset Progress",
+      icon: "xmark",
+      action: () => openSection("reset"),
+    },
   ];
 
-  const renderOptionCard = useCallback((option: any, index: number) => (
-    <Animated.View key={option.id} entering={FadeInDown.delay(index * 100).springify()}>
-      <Pressable
-        style={[styles.optionCard, { 
-          backgroundColor: isDark ? "#111" : "#F5F5F5", 
-          borderColor: isDark ? "#222" : "#E5E5E5", 
-          borderWidth: 1 
-        }]}
-        onPress={option.action}
+  const renderOptionCard = useCallback(
+    (option: any, index: number) => (
+      <Animated.View
+        key={option.id}
+        entering={FadeInDown.delay(index * 100).springify()}
       >
-        <View style={[styles.optionIcon, { backgroundColor: isDark ? "rgba(255,255,255,0.12)" : "rgba(49,130,206,0.15)" }]}>
-          <IconSymbol name={option.icon} size={28} color={colors.primary} />
-        </View>
-        <ThemedText style={[styles.optionTitle, { color: colors.text }]}>{option.title}</ThemedText>
-      </Pressable>
-    </Animated.View>
-  ), [colors, isDark]);
+        <Pressable
+          style={[
+            styles.optionCard,
+            {
+              backgroundColor: isDark ? "#111" : "#F5F5F5",
+              borderColor: isDark ? "#222" : "#E5E5E5",
+              borderWidth: 1,
+            },
+          ]}
+          onPress={option.action}
+        >
+          <View
+            style={[
+              styles.optionIcon,
+              {
+                backgroundColor: isDark
+                  ? "rgba(255,255,255,0.12)"
+                  : "rgba(49,130,206,0.15)",
+              },
+            ]}
+          >
+            <IconSymbol name={option.icon} size={28} color={colors.primary} />
+          </View>
+          <ThemedText style={[styles.optionTitle, { color: colors.text }]}>
+            {option.title}
+          </ThemedText>
+        </Pressable>
+      </Animated.View>
+    ),
+    [colors, isDark]
+  );
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
       <Animated.View entering={FadeInUp.springify()} style={styles.header}>
-        <ThemedText style={[styles.headerTitle, { color: colors.text }]}>Settings</ThemedText>
-        <ThemedText style={[styles.headerSubtitle, { color: colors.textSecondary }]}>Customize your app experience</ThemedText>
+        <ThemedText style={[styles.headerTitle, { color: colors.text }]}>
+          Settings
+        </ThemedText>
+        <ThemedText
+          style={[styles.headerSubtitle, { color: colors.textSecondary }]}
+        >
+          Customize your app experience
+        </ThemedText>
       </Animated.View>
 
       <View style={styles.content}>
-        {settingsOptions.map((option, index) => renderOptionCard(option, index))}
+        {settingsOptions.map((option, index) =>
+          renderOptionCard(option, index)
+        )}
       </View>
 
-      <Modal visible={settingsModalVisible} transparent animationType="slide" onRequestClose={closeModal}>
+      <Modal
+        visible={settingsModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={closeModal}
+      >
         <View style={styles.modalOverlay}>
-          <View style={[styles.modalBox, { backgroundColor: isDark ? "#222" : "#fff" }]}>
-            <ThemedText style={[styles.modalTitle, { color: colors.text, textAlign: "center" }]}>
+          <View
+            style={[
+              styles.modalBox,
+              { backgroundColor: isDark ? "#222" : "#fff" },
+            ]}
+          >
+            <ThemedText
+              style={[
+                styles.modalTitle,
+                { color: colors.text, textAlign: "center" },
+              ]}
+            >
               {currentSection === "notifications" && "Notifications"}
               {currentSection === "theme" && "Choose Theme"}
               {currentSection === "about" && "About This App"}
@@ -204,7 +277,9 @@ export default function SettingsScreen() {
             {currentSection === "notifications" && (
               <View>
                 <View style={styles.switchRow}>
-                  <ThemedText style={{ color: colors.text }}>Enable Notifications</ThemedText>
+                  <ThemedText style={{ color: colors.text }}>
+                    Enable Notifications
+                  </ThemedText>
                   <Switch
                     value={notificationsEnabled}
                     onValueChange={toggleNotifications}
@@ -212,8 +287,15 @@ export default function SettingsScreen() {
                   />
                 </View>
                 {notificationsEnabled && (
-                  <FadeTouchable onPress={sendTestNotification} style={{ padding: 10, alignItems: 'center' }}>
-                    <ThemedText style={{ color: colors.primary, fontWeight: 'bold' }}>▶ Send Test Notification</ThemedText>
+                  <FadeTouchable
+                    onPress={sendTestNotification}
+                    style={{ padding: 10, alignItems: "center" }}
+                  >
+                    <ThemedText
+                      style={{ color: colors.primary, fontWeight: "bold" }}
+                    >
+                      ▶ Send Test Notification
+                    </ThemedText>
                   </FadeTouchable>
                 )}
               </View>
@@ -221,37 +303,74 @@ export default function SettingsScreen() {
 
             {currentSection === "theme" && (
               <View>
-                {['light', 'dark', 'system'].map((m) => (
-                  <FadeTouchable key={m} onPress={() => { setTheme(m as any); closeModal(); }} style={styles.themeOption}>
+                {["light", "dark", "system"].map((m) => (
+                  <FadeTouchable
+                    key={m}
+                    onPress={() => {
+                      setTheme(m as any);
+                      closeModal();
+                    }}
+                    style={styles.themeOption}
+                  >
                     <ThemedText style={{ color: colors.text }}>
-                      {m === 'light' ? "🌞 Light Mode" : m === 'dark' ? "🌙 Dark Mode" : "🖥 System Default"}
+                      {m === "light"
+                        ? "🌞 Light Mode"
+                        : m === "dark"
+                        ? "🌙 Dark Mode"
+                        : "🖥 System Default"}
                     </ThemedText>
                   </FadeTouchable>
                 ))}
               </View>
-            )}  
+            )}
 
             {currentSection === "about" && (
               <View>
-                <ThemedText style={{ color: colors.text }}>Version: {Application.nativeApplicationVersion || "1.0.0"}</ThemedText>
-                <ThemedText style={{ color: colors.text, marginVertical: 10 }}>This application showcases the beauty of Kosovo.</ThemedText>
-                <FadeTouchable onPress={() => { Clipboard.setStringAsync("intoKosovateam@gmail.com"); alert("Copied!"); }}>
-                  <ThemedText style={{ color: colors.primary }}>📧 intoKosovateam@gmail.com</ThemedText>
+                <ThemedText style={{ color: colors.text }}>
+                  Version: {Application.nativeApplicationVersion || "1.0.0"}
+                </ThemedText>
+                <ThemedText style={{ color: colors.text, marginVertical: 10 }}>
+                  This application showcases the beauty of Kosovo.
+                </ThemedText>
+                <FadeTouchable
+                  onPress={() => {
+                    Clipboard.setStringAsync("intoKosovateam@gmail.com");
+                    alert("Copied!");
+                  }}
+                >
+                  <ThemedText style={{ color: colors.primary }}>
+                    📧 intoKosovateam@gmail.com
+                  </ThemedText>
                 </FadeTouchable>
               </View>
             )}
 
             {currentSection === "reset" && (
               <View style={styles.resetContainer}>
-                <ThemedText style={styles.resetWarningText}>Are you sure? This cannot be undone!</ThemedText>
-                <FadeTouchable onPress={() => { handleResetProgress(); closeModal(); }} style={styles.deleteButton}>
-                  <ThemedText style={styles.deleteButtonText}>Delete Progress</ThemedText>
+                <ThemedText style={styles.resetWarningText}>
+                  Are you sure? This cannot be undone!
+                </ThemedText>
+                <FadeTouchable
+                  onPress={() => {
+                    handleResetProgress();
+                    closeModal();
+                  }}
+                  style={styles.deleteButton}
+                >
+                  <ThemedText style={styles.deleteButtonText}>
+                    Delete Progress
+                  </ThemedText>
                 </FadeTouchable>
               </View>
             )}
 
-            <FadeTouchable style={styles.closeButtonBottom} onPress={closeModal}>
-              <ThemedText style={{ color: colors.primary, fontSize: 16 }}>Close</ThemedText>
+            <FadeTouchable
+              style={styles.closeButtonBottom}
+              onPress={closeModal}
+            >
+              <ThemedText style={{ color: colors.primary, fontSize: 16 }}>
+                Close
+              </ThemedText>
             </FadeTouchable>
           </View>
         </View>
@@ -262,21 +381,48 @@ export default function SettingsScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 40, alignItems: "center" },
+  header: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 40,
+    alignItems: "center",
+  },
   headerTitle: { fontSize: 32, fontWeight: "bold", marginBottom: 8 },
   headerSubtitle: { fontSize: 16, textAlign: "center" },
   content: { flex: 1, paddingHorizontal: 20 },
-  optionCard: { width: "100%", marginBottom: 16, borderRadius: 12, padding: 12, flexDirection: "row", alignItems: "center" },
+  optionCard: {
+    width: "100%",
+    marginBottom: 16,
+    borderRadius: 12,
+    padding: 12,
+    flexDirection: "row",
+    alignItems: "center",
+  },
   optionIcon: { marginRight: 16, padding: 8, borderRadius: 10 },
   optionTitle: { fontSize: 18, fontWeight: "500" },
-  modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", padding: 20 },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    padding: 20,
+  },
   modalBox: { padding: 20, borderRadius: 12 },
   modalTitle: { fontSize: 24, fontWeight: "bold", marginBottom: 20 },
-  switchRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginVertical: 20 },
+  switchRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginVertical: 20,
+  },
   themeOption: { paddingVertical: 14, paddingHorizontal: 10 },
   resetContainer: { alignItems: "center", marginTop: 20 },
   resetWarningText: { fontSize: 16, textAlign: "center", marginBottom: 30 },
-  deleteButton: { backgroundColor: "#ff4444", paddingHorizontal: 32, paddingVertical: 14, borderRadius: 10 },
+  deleteButton: {
+    backgroundColor: "#ff4444",
+    paddingHorizontal: 32,
+    paddingVertical: 14,
+    borderRadius: 10,
+  },
   deleteButtonText: { color: "#fff", fontSize: 17, fontWeight: "600" },
   closeButtonBottom: { marginTop: 30, alignSelf: "flex-end" },
 });
