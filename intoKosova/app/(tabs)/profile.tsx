@@ -39,6 +39,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { v4 as uuidv4 } from "uuid";
 import { useThemeManager } from "../../contexts/ThemeContext";
 
+
+
 const BASE_PATH = "/dataStorage";
 
 interface Photo {

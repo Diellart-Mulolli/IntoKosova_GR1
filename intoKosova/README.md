@@ -69,7 +69,12 @@ It serves as a digital guide for locals, tourists, and anyone interested in lear
 The project also emphasizes teamwork, user-centered design, and innovation in mobile development.
 
 ## Application Screenshots
-
+![Home Screen](screenshots/home.png)
+![Profile Screen](screenshots/profile.png)
+![Explore Screen](screenshots/explore.png)
+![Add Screen](screenshots/add.jpeg)
+![Settings Screen](screenshots/settings.png)
+![Sign In Screen](screenshots/signin.png)
 ## Team — intoKosova
 
 Amat Raçi

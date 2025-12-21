@@ -1,5 +1,4 @@
 import React from "react";
-import { IconSymbol } from "@/components/ui/icon-symbol";
 import {
   View,
   Text,
