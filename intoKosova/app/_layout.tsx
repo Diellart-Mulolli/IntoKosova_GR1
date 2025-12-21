@@ -1,4 +1,3 @@
-// app/_layout.tsx
 import { Stack } from "expo-router";
 import { ThemeProvider, useThemeManager } from "../contexts/ThemeContext";
 import {
@@ -7,7 +6,6 @@ import {
   DefaultTheme,
 } from "@react-navigation/native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-
 
 export default function RootLayout() {
   return (
@@ -35,10 +33,10 @@ function MainNavigation() {
   };
 
   return (
-  <GestureHandlerRootView style={{ flex: 1 }}>
-    <NavigationThemeProvider value={navigationTheme}>
-      <Stack screenOptions={{ headerShown: false }} />
-    </NavigationThemeProvider>
-  </GestureHandlerRootView>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <NavigationThemeProvider value={navigationTheme}>
+        <Stack screenOptions={{ headerShown: false }} />
+      </NavigationThemeProvider>
+    </GestureHandlerRootView>
   );
 }

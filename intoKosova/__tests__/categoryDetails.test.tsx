@@ -33,19 +33,19 @@ jest.mock("@expo/vector-icons", () => ({
 // ================= TESTS =================
 
 describe("CategoryDetails", () => {
-  // 1️⃣ SNAPSHOT TEST
+  // 1 SNAPSHOT TEST
   it("matches snapshot for initial render", () => {
     const { toJSON } = render(<CategoryDetails />);
     expect(toJSON()).toMatchSnapshot();
   });
 
-  // 2️⃣ TITLE TEST
+  // 2 TITLE TEST
   it("renders correct category title", () => {
     const { getByText } = render(<CategoryDetails />);
     expect(getByText("Historical Sites")).toBeTruthy();
   });
 
-  // 3️⃣ ITEMS TEST
+  // 3 ITEMS TEST
   it("renders all items for selected category", () => {
     const { getByText } = render(<CategoryDetails />);
 
