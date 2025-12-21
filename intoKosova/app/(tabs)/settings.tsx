@@ -8,14 +8,14 @@ import * as Clipboard from "expo-clipboard";
 import * as Notifications from "expo-notifications";
 import React, { useCallback, useEffect, useState } from "react";
 import {
-  Alert,
-  Modal,
-  Platform,
-  Pressable,
-  StyleSheet,
-  Switch,
-  TouchableOpacity,
-  View
+    Alert,
+    Modal,
+    Platform,
+    Pressable,
+    StyleSheet,
+    Switch,
+    TouchableOpacity,
+    View
 } from "react-native";
 import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -229,7 +229,7 @@ export default function SettingsScreen() {
                   </TouchableOpacity>
                 ))}
               </View>
-            )}
+            )}  
 
             {currentSection === "about" && (
               <View>
