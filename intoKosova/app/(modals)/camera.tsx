@@ -154,12 +154,51 @@ const applyCrop = async () => {
   setIsCropping(false);
 };
 
+// Compress image if it's larger than 1MB, return uri of compressed image
+const compressIfNeeded = async (uri: string) => {
+  try {
+    const info = await FileSystem.getInfoAsync(uri);
+    const maxBytes = 1_000_000; // 1MB
+    const size = (info as any).size as number | undefined;
+    if (size && size <= maxBytes) return uri;
+
+    // Get image dimensions
+    const meta = await ImageManipulator.manipulateAsync(uri, [], { base64: false });
+    const origWidth = meta.width || 1000;
+
+    let quality = 0.85;
+    let attempt = 0;
+    let lastUri = uri;
+
+    while (attempt < 6) {
+      const resizeWidth = Math.max(600, Math.round(origWidth * Math.pow(0.9, attempt)));
+      const result = await ImageManipulator.manipulateAsync(uri, [{ resize: { width: resizeWidth } }], { compress: quality, format: ImageManipulator.SaveFormat.JPEG });
+      const newInfo = await FileSystem.getInfoAsync(result.uri);
+      lastUri = result.uri;
+      const newSize = (newInfo as any).size as number | undefined;
+      if (newSize && newSize <= maxBytes) return result.uri;
+      // Reduce quality and try again
+      quality = Math.max(0.35, quality - 0.15);
+      attempt++;
+    }
+
+    // Return last result even if still >1MB
+    return lastUri;
+  } catch (e) {
+    console.warn("Image compression failed", e);
+    return uri;
+  }
+};
+
 // Use captured photo immediately in Profile Add Photo modal
 const useCapturedPhoto = async () => {
   if (!photoUri) return;
   try {
-    // Try to convert to base64 and send to profile so the modal can display it immediately
-    const base64 = await FileSystem.readAsStringAsync(photoUri, {
+    // Compress if needed
+    const finalUri = await compressIfNeeded(photoUri);
+
+    // Convert to base64 and send to profile so the modal can display it immediately
+    const base64 = await FileSystem.readAsStringAsync(finalUri, {
       // Some SDK versions don't export EncodingType typings — use string literal to avoid TS errors
       encoding: 'base64' as any,
     });
