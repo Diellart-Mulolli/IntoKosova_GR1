@@ -31,15 +31,6 @@ export default function CreateScreen() {
           style={styles.photoPlaceholder}
         >
           <Animated.View
-            entering={FadeInDown.delay(100).springify()}
-            style={[styles.textButton, { marginTop: "40%" }]}
-          >
-            <Pressable onPress={() => console.log("Text button pressed")}>
-              <IconSymbol size={24} name="text" color={palette.primary} />
-            </Pressable>
-          </Animated.View>
-
-          <Animated.View
             entering={FadeInDown.delay(200).springify()}
             style={[styles.cameraButton, { marginTop: 10 }]}
           >
@@ -53,14 +44,6 @@ export default function CreateScreen() {
           >
             <IconSymbol size={36} name="camera" color={palette.primary} />
           </Pressable>
-          </Animated.View>
-          <Animated.View
-            entering={FadeInDown.delay(300).springify()}
-            style={[styles.cameraButton, { marginTop: 10 }]}
-          >
-            <Pressable onPress={() => console.log("Plus button pressed")}>
-              <IconSymbol size={48} name="plus" color={palette.primary} />
-            </Pressable>
           </Animated.View>
         </Animated.View>
       </View>
@@ -112,5 +95,6 @@ const createStyles = (palette: any) =>
       alignItems: "center",
       marginLeft: "auto",
       marginRight: 5,
+      top:250
     },
   });

@@ -14,9 +14,9 @@ import {
     Pressable,
     StyleSheet,
     Switch,
-    TouchableOpacity,
     View
 } from "react-native";
+import FadeTouchable from "@/components/ui/fade-touchable";
 import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -212,9 +212,9 @@ export default function SettingsScreen() {
                   />
                 </View>
                 {notificationsEnabled && (
-                  <TouchableOpacity onPress={sendTestNotification} style={{ padding: 10, alignItems: 'center' }}>
+                  <FadeTouchable onPress={sendTestNotification} style={{ padding: 10, alignItems: 'center' }}>
                     <ThemedText style={{ color: colors.primary, fontWeight: 'bold' }}>▶ Send Test Notification</ThemedText>
-                  </TouchableOpacity>
+                  </FadeTouchable>
                 )}
               </View>
             )}
@@ -222,11 +222,11 @@ export default function SettingsScreen() {
             {currentSection === "theme" && (
               <View>
                 {['light', 'dark', 'system'].map((m) => (
-                  <TouchableOpacity key={m} onPress={() => { setTheme(m as any); closeModal(); }} style={styles.themeOption}>
+                  <FadeTouchable key={m} onPress={() => { setTheme(m as any); closeModal(); }} style={styles.themeOption}>
                     <ThemedText style={{ color: colors.text }}>
                       {m === 'light' ? "🌞 Light Mode" : m === 'dark' ? "🌙 Dark Mode" : "🖥 System Default"}
                     </ThemedText>
-                  </TouchableOpacity>
+                  </FadeTouchable>
                 ))}
               </View>
             )}  
@@ -235,24 +235,24 @@ export default function SettingsScreen() {
               <View>
                 <ThemedText style={{ color: colors.text }}>Version: {Application.nativeApplicationVersion || "1.0.0"}</ThemedText>
                 <ThemedText style={{ color: colors.text, marginVertical: 10 }}>This application showcases the beauty of Kosovo.</ThemedText>
-                <TouchableOpacity onPress={() => { Clipboard.setStringAsync("intoKosovateam@gmail.com"); alert("Copied!"); }}>
+                <FadeTouchable onPress={() => { Clipboard.setStringAsync("intoKosovateam@gmail.com"); alert("Copied!"); }}>
                   <ThemedText style={{ color: colors.primary }}>📧 intoKosovateam@gmail.com</ThemedText>
-                </TouchableOpacity>
+                </FadeTouchable>
               </View>
             )}
 
             {currentSection === "reset" && (
               <View style={styles.resetContainer}>
                 <ThemedText style={styles.resetWarningText}>Are you sure? This cannot be undone!</ThemedText>
-                <TouchableOpacity onPress={() => { handleResetProgress(); closeModal(); }} style={styles.deleteButton}>
+                <FadeTouchable onPress={() => { handleResetProgress(); closeModal(); }} style={styles.deleteButton}>
                   <ThemedText style={styles.deleteButtonText}>Delete Progress</ThemedText>
-                </TouchableOpacity>
+                </FadeTouchable>
               </View>
             )}
 
-            <TouchableOpacity style={styles.closeButtonBottom} onPress={closeModal}>
+            <FadeTouchable style={styles.closeButtonBottom} onPress={closeModal}>
               <ThemedText style={{ color: colors.primary, fontSize: 16 }}>Close</ThemedText>
-            </TouchableOpacity>
+            </FadeTouchable>
           </View>
         </View>
       </Modal>
